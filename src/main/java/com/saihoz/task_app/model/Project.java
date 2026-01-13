@@ -31,12 +31,12 @@ public class Project {
     private String description;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "created_id", nullable = false)
+    @JoinColumn(name = "created_id", nullable = false, updatable = false)
     private User createdBy;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private StatusProject status;
+    private ProjectStatus status;
 
     @Column(name = "start_date")
     private LocalDateTime startDate;
