@@ -5,12 +5,13 @@ import com.saihoz.task_app.model.Project;
 import com.saihoz.task_app.model.ProjectMember;
 import com.saihoz.task_app.model.Task;
 import com.saihoz.task_app.service.ProjectService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -22,42 +23,51 @@ public class ProjectController {
     @Autowired
     private ProjectService service;
 
-    public ResponseEntity<List<Project>> getAllProjects(){
-        return ResponseEntity.ok().body(service.getAllProjects());
+    @GetMapping
+    public ResponseEntity<List<Project>> getAllProjects(@AuthenticationPrincipal UserDetails user){
+        return ResponseEntity.ok().body(service.getAllProjects(user.getUsername()));
     }
 
-    public ResponseEntity<Project> getProject(Long id){
-        return ResponseEntity.ok().body(service.getProject(id));
+    @GetMapping("/{id}")
+    public ResponseEntity<Project> getProject(@PathVariable Long id, @AuthenticationPrincipal UserDetails user){
+        return ResponseEntity.ok().body(service.getProject(id, user.getUsername()));
     }
 
-    public ResponseEntity<Project> addProject(ProjectRequest request){
-        return ResponseEntity.ok().body(service.addProject(request));
+    @PostMapping
+    public ResponseEntity<Project> addProject(@Valid @RequestBody ProjectRequest request, @AuthenticationPrincipal UserDetails user){
+        return new ResponseEntity<>(service.addProject(request, user.getUsername()), HttpStatus.CREATED);
     }
 
-    public ResponseEntity<String> deleteProject(@PathVariable Long id){
-        service.deleteProject(id);
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteProject(@PathVariable Long id, @AuthenticationPrincipal UserDetails user){
+        service.deleteProject(id, user.getUsername());
         return ResponseEntity.ok().body("Project deleted successfully");
     }
 
-    public ResponseEntity<Project> updateProject(@PathVariable Long id, ProjectRequest request){
-        return ResponseEntity.ok().body(service.updateProject(id, request));
+    @PutMapping("/{id}")
+    public ResponseEntity<Project> updateProject(@PathVariable Long id,@Valid @RequestBody ProjectRequest request, @AuthenticationPrincipal UserDetails user){
+        return ResponseEntity.ok().body(service.updateProject(id, request, user.getUsername()));
     }
 
-    public ResponseEntity<ProjectMember> addMemberOnProject(@PathVariable Long id, ProjectMember member){
-        return ResponseEntity.ok().body(service.addMemberOnProject(id, member));
+    @PostMapping("/members/{id}")
+    public ResponseEntity<ProjectMember> addMemberOnProject(@PathVariable Long id,@Valid @RequestBody ProjectMember member, @AuthenticationPrincipal UserDetails user){
+        return ResponseEntity.ok().body(service.addMemberOnProject(id, member, user.getUsername()));
     }
 
-    public ResponseEntity<String> deleteMemberOnProject(@PathVariable Long id, ProjectMember member){
-        service.deleteMemberOnProject(id, member.getId());
+    @DeleteMapping("/members/{id}")
+    public ResponseEntity<String> deleteMemberOnProject(@PathVariable Long id,@Valid @RequestBody ProjectMember member, @AuthenticationPrincipal UserDetails user){
+        service.deleteMemberOnProject(id, member.getId(), user.getUsername());
         return ResponseEntity.ok().body("Member deleted successfully");
     }
 
-    public ResponseEntity<List<ProjectMember>> getMembersOnProject(@PathVariable Long id){
-        return ResponseEntity.ok().body(service.getMembersOnProject(id));
+    @GetMapping("/members")
+    public ResponseEntity<List<ProjectMember>> getMembersOnProject(@PathVariable Long id, @AuthenticationPrincipal UserDetails user){
+        return ResponseEntity.ok().body(service.getMembersOnProject(id, user.getUsername()));
     }
 
-    public ResponseEntity<List<Task>> getTasksOnProject(@PathVariable Long id){
-        return ResponseEntity.ok().body(service.getTasksOnProject(id));
+    @GetMapping("/tasks")
+    public ResponseEntity<List<Task>> getTasksOnProject(@PathVariable Long id, @AuthenticationPrincipal UserDetails user){
+        return ResponseEntity.ok().body(service.getTasksOnProject(id, user.getUsername()));
     }
 
 }

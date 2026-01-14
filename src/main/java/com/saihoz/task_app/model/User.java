@@ -10,7 +10,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
-import java.util.Set;
+import java.util.List;
 
 @Entity
 @Table(name = "users")
@@ -28,7 +28,7 @@ public class User {
     private String username;
 
     @NotBlank(message = "The password cannot be empty")
-    @Size(max = 50, message = "The password cannot exceed 50 characters")
+    @Size(min=8, max = 100, message = "The password cannot exceed 50 characters")
     @Column(nullable = false)
     private String password;
 
@@ -58,12 +58,20 @@ public class User {
     private LocalDateTime updatedAt;
 
     @Column(name = "is_active", nullable = false)
-    private Boolean isActive;
+    private Boolean isActive = true;
 
     @OneToMany(mappedBy = "createdBy", cascade = CascadeType.REMOVE, orphanRemoval = true)
-    private Set<Project> projectCreated;
+    private List<Project> projectsCreated;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
-    private Set<ProjectMember> projectMember;
+    private List<ProjectMember> projectMembers;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<Comment> comments;
+
+    @PrePersist
+    public void prePersist() {
+        this.isActive = true;
+    }
 
 }

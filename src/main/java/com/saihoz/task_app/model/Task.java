@@ -1,24 +1,22 @@
 package com.saihoz.task_app.model;
 
 import jakarta.persistence.*;
+import jakarta.persistence.CascadeType;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
-import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.annotations.*;
 
 import java.time.LocalDateTime;
-import java.util.Set;
+import java.util.List;
 
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
+@Data
 public class Task {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -46,8 +44,7 @@ public class Task {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    @Builder.Default
-    private PriorityStatus priority = PriorityStatus.MEDIUM;
+    private PriorityStatus priority;
 
     @Column(name = "due_date")
     private LocalDateTime dueDate;
@@ -72,7 +69,11 @@ public class Task {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @OneToMany(mappedBy = "task", cascade = CascadeType.REMOVE, orphanRemoval = true)
-    private Set<Comment> comment;
+        @OneToMany(mappedBy = "task", cascade = CascadeType.REMOVE, orphanRemoval = true)
+        private List<Comment> comment;
 
+    @PrePersist
+    public void prePersist() {
+        this.priority = PriorityStatus.MEDIUM;
+    }
 }
