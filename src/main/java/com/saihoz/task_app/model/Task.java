@@ -5,9 +5,7 @@ import jakarta.persistence.CascadeType;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.*;
 
 import java.time.LocalDateTime;
@@ -16,7 +14,8 @@ import java.util.List;
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
+@Getter
+@Setter
 public class Task {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -69,11 +68,14 @@ public class Task {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-        @OneToMany(mappedBy = "task", cascade = CascadeType.REMOVE, orphanRemoval = true)
-        private List<Comment> comment;
+    @OneToMany(mappedBy = "task", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<Comment> comment;
 
     @PrePersist
     public void prePersist() {
-        this.priority = PriorityStatus.MEDIUM;
+        if (this.priority == null) {
+            this.priority = PriorityStatus.MEDIUM;
+        }
     }
+
 }

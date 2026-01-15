@@ -1,18 +1,19 @@
 package com.saihoz.task_app.service;
 
+import com.saihoz.task_app.dto.ProjectDTO.ProjectMemberRequest;
 import com.saihoz.task_app.dto.ProjectDTO.ProjectRequest;
-import com.saihoz.task_app.model.Project;
-import com.saihoz.task_app.model.ProjectMember;
-import com.saihoz.task_app.model.User;
-import com.saihoz.task_app.model.Task;
-import com.saihoz.task_app.repo.MemberRepo;
-import com.saihoz.task_app.repo.ProjectRepo;
-import com.saihoz.task_app.repo.TaskRepo;
-import com.saihoz.task_app.repo.UserRepo;
+import com.saihoz.task_app.dto.ProjectDTO.ProjectResponse;
+import com.saihoz.task_app.dto.TaskDTO.TaskResponse;
+import com.saihoz.task_app.dto.UserDTO.UserResponse;
+import com.saihoz.task_app.mapper.ProjectMapper;
+import com.saihoz.task_app.mapper.TaskMapper;
+import com.saihoz.task_app.model.*;
+import com.saihoz.task_app.repo.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class ProjectService {
@@ -29,26 +30,32 @@ public class ProjectService {
     @Autowired
     private MemberRepo memberRepo;
 
-    public List<Project> getAllProjects(String username){
+    @Autowired
+    private RoleRepo roleRepo;
+
+    @Autowired
+    private TaskMapper taskMapper;
+
+    @Autowired
+    private ProjectMapper projectMapper;
+
+    public List<ProjectResponse> getAllProjects(String username){
         User user = userRepo.findByUsername(username);
-        return repo.findByCreatedBy(user);
+        List<Project> projects = repo.findByCreatedBy(user);
+        return projects.stream()
+                .map(project -> projectMapper.toResponse(project))
+                .collect(Collectors.toList());
     }
 
-    public Project getProject(Long id, String username){
+    public ProjectResponse getProject(Long id, String username){
         User user = userRepo.findByUsername(username);
-        return repo.findByIdAndCreatedBy(id, user);
+        return projectMapper.toResponse(repo.findByIdAndCreatedBy(id, user));
     }
 
-    public Project addProject(ProjectRequest request, String username){
+    public ProjectResponse addProject(ProjectRequest request, String username){
         User user = userRepo.findByUsername(username);
-        Project project = new Project();
-        project.setName(request.name());
-        project.setDescription(request.description());
-        project.setStartDate(request.startDate());
-        project.setEndDate(request.endDate());
-        project.setStatus(request.status());
-        project.setCreatedBy(user);
-        return repo.save(project);
+        Project project = projectMapper.toEntity(request, user);
+        return projectMapper.toResponse(repo.save(project));
     }
 
     public Project updateProject(Long id, ProjectRequest request, String username){
@@ -64,30 +71,34 @@ public class ProjectService {
 
     public void deleteProject(Long id, String username){
         User user = userRepo.findByUsername(username);
-        Project project = repo.findByIdAndCreatedBy(id, user);
-        repo.delete(project);
+        repo.delete(repo.findByIdAndCreatedBy(id, user));
     }
 
-    public List<Task> getTasksOnProject(Long id, String username){
+    public List<TaskResponse> getTasksOnProject(Long id, String username){
         User user = userRepo.findByUsername(username);
         Project project = repo.findByIdAndCreatedBy(id, user);
         List<Task> tasks = taskRepo.findByProject(project);
-        return tasks;
+        return tasks.stream()
+                .map(task -> taskMapper.toResponse(task))
+                .collect(Collectors.toList());
     }
 
     public List<ProjectMember> getMembersOnProject(Long id, String username){
         User user = userRepo.findByUsername(username);
         Project project = repo.findByIdAndCreatedBy(id, user);
-        List<ProjectMember> members = memberRepo.findByProject(project);
-        return members;
+        return memberRepo.findByProject(project);
     }
 
-    public ProjectMember addMemberOnProject(Long id, ProjectMember member, String username){
+    public ProjectMember addMemberOnProject(Long id, ProjectMemberRequest member, String username){
         User user = userRepo.findByUsername(username);
         Project project = repo.findByIdAndCreatedBy(id, user);
-        member.setProject(project);
-        member.setUser(user);
-        return memberRepo.save(member);
+        User userMember = userRepo.findById(member.userId()).orElse(null);
+        Role role = roleRepo.findByName(member.role());
+        ProjectMember projectMember = new ProjectMember();
+        projectMember.setProject(project);
+        projectMember.setUser(userMember);
+        projectMember.setRole(role);
+        return memberRepo.save(projectMember);
     }
 
     public void deleteMemberOnProject(Long projectId, Long memberId, String username){

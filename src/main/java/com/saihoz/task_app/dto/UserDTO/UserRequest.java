@@ -1,10 +1,9 @@
-package com.saihoz.task_app.dto;
+package com.saihoz.task_app.dto.UserDTO;
 
-public record RegisterResponse(
-        Long id,
+public record UserRequest(
         String username,
         String email,
         String password,
         String avatar_url
-)
-{}
+) {
+}

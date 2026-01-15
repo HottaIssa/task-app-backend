@@ -18,12 +18,6 @@ public class TaskSpecification {
                         cb.equal(cb.lower(root.get("status")), status.toLowerCase());
     }
 
-    public static Specification<Task> assignedTo(Long assignedTo) {
-        return (root, query, cb) ->
-                assignedTo == null ? null :
-                        cb.equal(root.get("assignedTo").get("id"), assignedTo);
-    }
-
     public static Specification<Task> priority(String priority) {
         return (root, query, cb) ->
                 priority == null ? null :
