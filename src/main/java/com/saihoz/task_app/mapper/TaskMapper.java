@@ -20,6 +20,9 @@ public class TaskMapper {
                         task.getAssignedTo().getId(),
                         task.getAssignedTo().getUsername(),
                         task.getAssignedTo().getEmail(),
+                        task.getAssignedTo().getFirstName(),
+                        task.getAssignedTo().getLastName(),
+                        task.getAssignedTo().getRole().getDisplayName(),
                         task.getAssignedTo().getAvatar_url()),
                 new TaskStatusResponse(
                         task.getStatus().getId(),

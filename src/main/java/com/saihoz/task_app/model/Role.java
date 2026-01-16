@@ -1,18 +1,15 @@
 package com.saihoz.task_app.model;
 
-import jakarta.persistence.*;
-import lombok.*;
+import lombok.Getter;
 
-@Entity
 @Getter
-@Setter
-@AllArgsConstructor
-@NoArgsConstructor
-public class Role {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    @Column(unique = true)
-    private String name;
-    private String description;
+public enum Role {
+        ADMIN("Admin"),
+        USER("User");
+
+    private final String displayName;
+
+    Role(String displayName) {
+        this.displayName = displayName;
+    }
 }

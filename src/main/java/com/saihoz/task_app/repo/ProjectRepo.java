@@ -6,12 +6,13 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.UUID;
 
 @Repository
-public interface ProjectRepo extends JpaRepository<Project, Long> {
+public interface ProjectRepo extends JpaRepository<Project, UUID> {
 
     List<Project> findByCreatedBy(User user);
 
-    Project findByIdAndCreatedBy(Long id, User user);
+    Project findByIdAndCreatedBy(UUID id, User user);
 
 }

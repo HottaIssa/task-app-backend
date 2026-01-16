@@ -7,9 +7,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.UUID;
 
 @Repository
-public interface MemberRepo extends JpaRepository<ProjectMember, Long> {
+public interface MemberRepo extends JpaRepository<ProjectMember, UUID> {
     List<ProjectMember> findByProject(Project project);
-    ProjectMember findByIdAndProject(Long id, Project project);
+    ProjectMember findByIdAndProject(UUID id, Project project);
 }

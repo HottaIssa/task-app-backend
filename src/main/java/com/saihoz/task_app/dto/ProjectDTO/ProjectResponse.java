@@ -4,9 +4,10 @@ import com.saihoz.task_app.dto.UserDTO.UserResponse;
 import com.saihoz.task_app.model.ProjectStatus;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 public record ProjectResponse(
-        Long id,
+        UUID id,
         String name,
         String description,
         String status,

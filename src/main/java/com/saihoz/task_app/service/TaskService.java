@@ -1,5 +1,6 @@
 package com.saihoz.task_app.service;
 
+import com.saihoz.task_app.dto.TaskDTO.PatchTaskStatusRequest;
 import com.saihoz.task_app.dto.TaskDTO.TaskRequest;
 import com.saihoz.task_app.dto.TaskDTO.TaskResponse;
 import com.saihoz.task_app.mapper.TaskMapper;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @Transactional
@@ -55,7 +57,7 @@ public class TaskService {
         return tasks.map(taskMapper::toResponse);
     }
 
-    public TaskResponse getTask(Long id, String username){
+    public TaskResponse getTask(UUID id, String username){
         User user = userRepo.findByUsername(username);
         Task task = taskRepo.findByIdAndCreatedBy(id, user);
         return taskMapper.toResponse(task);
@@ -72,29 +74,30 @@ public class TaskService {
         return taskMapper.toResponse(taskToSave);
     }
 
-    public TaskResponse updateTask(Long id, Task task, String username){
+    public TaskResponse updateTask(UUID id, Task task, String username){
         Task taskToUpdate = taskRepo.findByIdAndCreatedBy(id, userRepo.findByUsername(username));
         taskRepo.save(task);
         return taskMapper.toResponse(taskToUpdate);
     }
 
-    public TaskResponse patchTaskStatus(Long id, Long statusId, String username){
+    public TaskResponse patchTaskStatus(UUID id, PatchTaskStatusRequest request, String username){
         Task taskToUpdate = taskRepo.findByIdAndCreatedBy(id, userRepo.findByUsername(username));
-        taskToUpdate.setStatus(taskStatusRepo.findById(statusId).orElse(null));
+        taskToUpdate.setStatus(taskStatusRepo.findById(request.statusId()).orElse(null));
+        taskRepo.save(taskToUpdate);
         return taskMapper.toResponse(taskToUpdate);
     }
 
-    public void deleteTask(Long id, String username){
+    public void deleteTask(UUID id, String username){
         Task taskToDelete = taskRepo.findByIdAndCreatedBy(id, userRepo.findByUsername(username));
         taskRepo.delete(taskToDelete);
     }
 
-    public List<Comment> getCommentsOnTask(Long id){
+    public List<Comment> getCommentsOnTask(UUID id){
         Task task = taskRepo.findById(id).orElse(null);
         return task.getComment();
     }
 
-    public Comment addCommentOnTask(Long id, Comment comment, String username){
+    public Comment addCommentOnTask(UUID id, Comment comment, String username){
         User user = userRepo.findByUsername(username);
         Task task = taskRepo.findById(id).orElse(null);
         comment.setTask(task);

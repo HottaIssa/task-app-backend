@@ -3,12 +3,12 @@ package com.saihoz.task_app.model;
 import lombok.Getter;
 
 @Getter
-public enum PriorityStatus {
-    URGENT("Urgent"), HIGH("High"), MEDIUM("Medium"), LOW("Low");
+public enum RoleMember {
+    ADMIN("Admin"), MEMBER("Member"), VIEWER("Viewer");
 
     private final String displayName;
 
-    PriorityStatus(String displayName) {
+    RoleMember(String displayName) {
         this.displayName = displayName;
     }
 }

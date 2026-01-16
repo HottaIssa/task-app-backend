@@ -1,5 +1,6 @@
 package com.saihoz.task_app.controller;
 
+import com.saihoz.task_app.dto.TaskDTO.PatchTaskStatusRequest;
 import com.saihoz.task_app.dto.TaskDTO.TaskRequest;
 import com.saihoz.task_app.dto.TaskDTO.TaskResponse;
 import com.saihoz.task_app.model.Comment;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/tasks")
@@ -46,7 +48,7 @@ public class TaskController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<TaskResponse> getTask(@PathVariable Long id, @AuthenticationPrincipal UserDetails user){
+    public ResponseEntity<TaskResponse> getTask(@PathVariable UUID id, @AuthenticationPrincipal UserDetails user){
         return ResponseEntity.ok().body(taskService.getTask(id, user.getUsername()));
     }
 
@@ -56,28 +58,28 @@ public class TaskController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<TaskResponse> updateTask(@PathVariable Long id, @Valid @RequestBody Task task, @AuthenticationPrincipal UserDetails user){
+    public ResponseEntity<TaskResponse> updateTask(@PathVariable UUID id, @Valid @RequestBody Task task, @AuthenticationPrincipal UserDetails user){
         return ResponseEntity.ok().body(taskService.updateTask(id, task, user.getUsername()));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteTask(@PathVariable Long id, @AuthenticationPrincipal UserDetails user){
+    public ResponseEntity<String> deleteTask(@PathVariable UUID id, @AuthenticationPrincipal UserDetails user){
         taskService.deleteTask(id, user.getUsername());
         return ResponseEntity.ok().body("Task deleted successfully");
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<TaskResponse> updateTaskStatus(@PathVariable Long id, @RequestBody Long statusId, @AuthenticationPrincipal UserDetails user){
-        return ResponseEntity.ok().body(taskService.patchTaskStatus(id, statusId, user.getUsername()));
+    public ResponseEntity<TaskResponse> updateTaskStatus(@PathVariable UUID id, @RequestBody PatchTaskStatusRequest request, @AuthenticationPrincipal UserDetails user){
+        return ResponseEntity.ok().body(taskService.patchTaskStatus(id, request, user.getUsername()));
     }
 
     @GetMapping("/{id}/comments")
-    public ResponseEntity<List<Comment>> getCommentsOnTask(@PathVariable Long id){
+    public ResponseEntity<List<Comment>> getCommentsOnTask(@PathVariable UUID id){
         return ResponseEntity.ok().body(taskService.getCommentsOnTask(id));
     }
 
     @PostMapping("/{id}/comments")
-    public ResponseEntity<Comment> addCommentOnTask(@PathVariable Long id, @Valid @RequestBody Comment comment, @AuthenticationPrincipal UserDetails user){
+    public ResponseEntity<Comment> addCommentOnTask(@PathVariable UUID id, @Valid @RequestBody Comment comment, @AuthenticationPrincipal UserDetails user){
         return ResponseEntity.ok().body(taskService.addCommentOnTask(id, comment, user.getUsername()));
     }
 

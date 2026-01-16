@@ -10,6 +10,7 @@ import org.hibernate.annotations.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Entity
 @AllArgsConstructor
@@ -18,8 +19,8 @@ import java.util.List;
 @Setter
 public class Task {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @NotBlank(message = "The title cannot be empty")
     @Size(max = 200, message = "The title cannot exceed 200 characters")

@@ -3,12 +3,13 @@ package com.saihoz.task_app.dto.TaskDTO;
 import com.saihoz.task_app.dto.UserDTO.UserResponse;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 public record TaskResponse(
-        Long id,
+        UUID id,
         String title,
         String description,
-        Long projectId,
+        UUID projectId,
         String projectName,
         UserResponse member,
         TaskStatusResponse status,

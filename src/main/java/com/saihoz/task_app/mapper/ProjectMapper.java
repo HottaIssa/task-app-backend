@@ -22,6 +22,9 @@ public class ProjectMapper {
                         project.getCreatedBy().getId(),
                         project.getCreatedBy().getUsername(),
                         project.getCreatedBy().getEmail(),
+                        project.getCreatedBy().getFirstName(),
+                        project.getCreatedBy().getLastName(),
+                        project.getCreatedBy().getRole().getDisplayName(),
                         project.getCreatedBy().getAvatar_url()
                 )
         );
