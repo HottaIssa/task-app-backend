@@ -20,7 +20,8 @@ public class ProjectMemberMapper {
                         projectMember.getUser().getRole().getDisplayName(),
                         projectMember.getUser().getAvatar_url()
                 ),
-                projectMember.getRoleMember().getDisplayName()
+                projectMember.getRoleMember().getDisplayName(),
+                projectMember.getJoinedAt()
         );
 
     }

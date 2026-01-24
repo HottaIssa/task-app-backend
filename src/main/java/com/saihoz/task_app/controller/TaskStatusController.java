@@ -12,8 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/task-status")
-@CrossOrigin("*")
+@RequestMapping("/api/task-statusId")
 public class TaskStatusController {
 
     @Autowired
@@ -32,7 +31,7 @@ public class TaskStatusController {
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteTaskStatus(@PathVariable Long id){
         service.deleteTaskStatus(id);
-        return ResponseEntity.ok().body("Task status deleted successfully");
+        return ResponseEntity.ok().body("Task statusId deleted successfully");
     }
 
 }

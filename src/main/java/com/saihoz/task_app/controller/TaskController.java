@@ -3,6 +3,7 @@ package com.saihoz.task_app.controller;
 import com.saihoz.task_app.dto.TaskDTO.PatchTaskStatusRequest;
 import com.saihoz.task_app.dto.TaskDTO.TaskRequest;
 import com.saihoz.task_app.dto.TaskDTO.TaskResponse;
+import com.saihoz.task_app.dto.TaskDTO.TaskUpdateRequest;
 import com.saihoz.task_app.model.Comment;
 import com.saihoz.task_app.model.Task;
 import com.saihoz.task_app.service.TaskService;
@@ -22,7 +23,6 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/tasks")
-@CrossOrigin("*")
 public class TaskController {
 
     private final TaskService taskService;
@@ -49,7 +49,7 @@ public class TaskController {
 
     @GetMapping("/{id}")
     public ResponseEntity<TaskResponse> getTask(@PathVariable UUID id, @AuthenticationPrincipal UserDetails user){
-        return ResponseEntity.ok().body(taskService.getTask(id, user.getUsername()));
+        return ResponseEntity.ok().body(taskService.getTask(id));
     }
 
     @PostMapping
@@ -58,7 +58,7 @@ public class TaskController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<TaskResponse> updateTask(@PathVariable UUID id, @Valid @RequestBody Task task, @AuthenticationPrincipal UserDetails user){
+    public ResponseEntity<TaskResponse> updateTask(@PathVariable UUID id, @Valid @RequestBody TaskUpdateRequest task, @AuthenticationPrincipal UserDetails user){
         return ResponseEntity.ok().body(taskService.updateTask(id, task, user.getUsername()));
     }
 

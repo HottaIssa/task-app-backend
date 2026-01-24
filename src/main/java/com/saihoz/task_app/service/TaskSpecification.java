@@ -15,7 +15,7 @@ public class TaskSpecification {
     public static Specification<Task> status(String status) {
         return (root, query, cb) ->
                 status == null ? null :
-                        cb.equal(cb.lower(root.get("status")), status.toLowerCase());
+                        cb.equal(cb.lower(root.get("statusId")), status.toLowerCase());
     }
 
     public static Specification<Task> priority(String priority) {

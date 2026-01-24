@@ -1,10 +1,14 @@
 package com.saihoz.task_app.controller;
 
+import com.saihoz.task_app.dto.KanbanDTO.KanbanBoardResponse;
+import com.saihoz.task_app.dto.KanbanDTO.KanbanColumnResponse;
 import com.saihoz.task_app.dto.ProjectDTO.ProjectMemberRequest;
 import com.saihoz.task_app.dto.ProjectDTO.ProjectMemberResponse;
 import com.saihoz.task_app.dto.ProjectDTO.ProjectRequest;
 import com.saihoz.task_app.dto.ProjectDTO.ProjectResponse;
+import com.saihoz.task_app.dto.TaskDTO.TaskListResponse;
 import com.saihoz.task_app.dto.TaskDTO.TaskResponse;
+import com.saihoz.task_app.dto.TaskDTO.TaskStatusResponse;
 import com.saihoz.task_app.model.Project;
 import com.saihoz.task_app.service.ProjectService;
 import jakarta.validation.Valid;
@@ -16,11 +20,12 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+
 
 @RestController
 @RequestMapping("/api/projects")
-@CrossOrigin("*")
 public class ProjectController {
 
     @Autowired
@@ -69,8 +74,8 @@ public class ProjectController {
     }
 
     @GetMapping("/{projectId}/tasks")
-    public ResponseEntity<List<TaskResponse>> getTasksOnProject(@PathVariable UUID projectId, @AuthenticationPrincipal UserDetails user){
-        return ResponseEntity.ok().body(service.getTasksOnProject(projectId, user.getUsername()));
+    public ResponseEntity<KanbanBoardResponse> getTasksOnProject(@PathVariable UUID projectId, @AuthenticationPrincipal UserDetails user){
+        return ResponseEntity.ok().body(service.getKanbanBoard(projectId, user.getUsername()));
     }
 
 }

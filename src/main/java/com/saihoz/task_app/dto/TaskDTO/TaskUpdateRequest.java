@@ -5,14 +5,14 @@ import com.saihoz.task_app.model.PriorityStatus;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-public record TaskRequest(
+public record TaskUpdateRequest(
         String title,
         String description,
-        UUID projectId,
         UUID memberId,
-        Long statusId,
+        Long status,
         PriorityStatus priority,
         LocalDateTime dueDate,
-        Double estimatedHours
+        Double estimatedHours,
+        Double actualHours
 ) {
 }

@@ -23,12 +23,12 @@ public class User {
     private UUID id;
 
     @NotBlank(message = "The username cannot be empty")
-    @Size(max = 50, message = "The username cannot exceed 50 characters")
+    @Size(max = 20, message = "The username cannot exceed 20 characters")
     @Column(unique = true, nullable = false)
     private String username;
 
     @NotBlank(message = "The password cannot be empty")
-    @Size(min=8, max = 100, message = "The password cannot exceed 50 characters")
+    @Size(min=8, max = 100, message = "The password cannot exceed 20 characters")
     @Column(nullable = false)
     private String password;
 
@@ -76,5 +76,7 @@ public class User {
     public void prePersist() {
         this.isActive = true;
     }
+
+
 
 }

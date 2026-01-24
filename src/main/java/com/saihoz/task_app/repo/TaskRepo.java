@@ -22,5 +22,6 @@ public interface TaskRepo extends JpaRepository<Task, UUID> {
     Page<Task> findByCreatedBy(User createdBy, Specification<Task> spec, Pageable pageable);
     Task findByIdAndCreatedBy(UUID id, User user);
     List<Task> findByAssignedTo(User user);
+    List<Task> findByProjectOrderByCreatedAtDesc(Project project);
 
 }

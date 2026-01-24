@@ -34,4 +34,23 @@ public class ProjectMember {
     @Column(name = "joined_at")
     private LocalDateTime joinedAt;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "invited_by")
+    private User invitedBy;
+
+    public boolean hasAdminPermissions() {
+        return roleMember == RoleMember.ADMIN;
+    }
+
+    public boolean canEditTasks() {
+        return roleMember != RoleMember.VIEWER;
+    }
+
+    public boolean canManageMembers() {
+        return hasAdminPermissions();
+    }
+
+    public boolean canDeleteProject() {
+        return roleMember == RoleMember.ADMIN;
+    }
 }

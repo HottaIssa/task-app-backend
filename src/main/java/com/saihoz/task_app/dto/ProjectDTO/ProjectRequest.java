@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 public record ProjectRequest (
     String name,
     String description,
-    ProjectStatus status,
     LocalDateTime startDate,
-    LocalDateTime endDate
+    LocalDateTime endDate,
+    ProjectStatus status
 ){}

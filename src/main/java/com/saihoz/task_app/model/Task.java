@@ -9,6 +9,7 @@ import lombok.*;
 import org.hibernate.annotations.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -17,6 +18,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @Getter
 @Setter
+@Builder
 public class Task {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -24,6 +26,7 @@ public class Task {
 
     @NotBlank(message = "The title cannot be empty")
     @Size(max = 200, message = "The title cannot exceed 200 characters")
+    @Column(nullable = false)
     private String title;
 
     @Column(columnDefinition = "TEXT")
@@ -44,7 +47,8 @@ public class Task {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private PriorityStatus priority;
+    @Builder.Default
+    private PriorityStatus priority = PriorityStatus.MEDIUM;
 
     @Column(name = "due_date")
     private LocalDateTime dueDate;
@@ -55,7 +59,8 @@ public class Task {
 
     @Min(value = 0, message = "The actual hours cannot be negatives")
     @Column(name = "actual_hours")
-    private Double actualHours;
+    @Builder.Default
+    private Double actualHours = 0.0;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by", nullable = false)
@@ -70,13 +75,25 @@ public class Task {
     private LocalDateTime updatedAt;
 
     @OneToMany(mappedBy = "task", cascade = CascadeType.REMOVE, orphanRemoval = true)
-    private List<Comment> comment;
+    @Builder.Default
+    private List<Comment> comments = new ArrayList<>();
 
     @PrePersist
     public void prePersist() {
         if (this.priority == null) {
             this.priority = PriorityStatus.MEDIUM;
         }
+        if (this.actualHours == null) {
+            this.actualHours = 0.0;
+        }
     }
 
+    public boolean isOverdue() {
+        if (dueDate == null) return false;
+        return LocalDateTime.now().isAfter(dueDate) && !isCompleted();
+    }
+
+    public boolean isCompleted() {
+        return status != null && "DONE".equalsIgnoreCase(status.getName());
+    }
 }

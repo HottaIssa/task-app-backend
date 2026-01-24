@@ -22,8 +22,9 @@ public class TaskStatusService {
                 .map(taskStatus ->
                         new TaskStatusResponse(
                                 taskStatus.getId(),
-                                taskStatus.getName().getDisplayName(),
-                                taskStatus.getColor()))
+                                taskStatus.getName(),
+                                taskStatus.getColor(),
+                                taskStatus.getOrderIndex()))
                 .collect(Collectors.toList());
     }
 
@@ -34,8 +35,9 @@ public class TaskStatusService {
         repository.save(taskStatus);
         return new TaskStatusResponse(
                 taskStatus.getId(),
-                taskStatus.getName().getDisplayName(),
-                taskStatus.getColor());
+                taskStatus.getName(),
+                taskStatus.getColor(),
+                taskStatus.getOrderIndex());
     }
 
     public void deleteTaskStatus(Long id){

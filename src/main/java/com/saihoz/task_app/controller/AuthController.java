@@ -15,7 +15,6 @@ import com.saihoz.task_app.service.UserService;
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin("*")
 public class AuthController {
     @Autowired
     private UserService service;

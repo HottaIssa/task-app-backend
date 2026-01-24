@@ -3,6 +3,7 @@ package com.saihoz.task_app.service;
 import com.saihoz.task_app.dto.TaskDTO.PatchTaskStatusRequest;
 import com.saihoz.task_app.dto.TaskDTO.TaskRequest;
 import com.saihoz.task_app.dto.TaskDTO.TaskResponse;
+import com.saihoz.task_app.dto.TaskDTO.TaskUpdateRequest;
 import com.saihoz.task_app.mapper.TaskMapper;
 import com.saihoz.task_app.model.*;
 import com.saihoz.task_app.repo.*;
@@ -57,27 +58,80 @@ public class TaskService {
         return tasks.map(taskMapper::toResponse);
     }
 
-    public TaskResponse getTask(UUID id, String username){
-        User user = userRepo.findByUsername(username);
-        Task task = taskRepo.findByIdAndCreatedBy(id, user);
+    public TaskResponse getTask(UUID taskId) {
+
+        Task task = taskRepo.findById(taskId).orElse(null);
+
         return taskMapper.toResponse(task);
     }
 
-    public TaskResponse addTask(TaskRequest task, String username){
-        User user = userRepo.findByUsername(username);
-        User member = userRepo.findById(task.memberId()).orElse(null);
-        PriorityStatus priorityStatus = PriorityStatus.valueOf(task.priority().toUpperCase());
-        TaskStatus taskStatus = taskStatusRepo.findById(task.status()).orElse(null);
-        Project project = projectRepo.findById(task.projectId()).orElse(null);
-        Task taskToSave = taskMapper.toEntity(task, user, priorityStatus, project, taskStatus, member);
-        taskRepo.save(taskToSave);
-        return taskMapper.toResponse(taskToSave);
+    public TaskResponse addTask(TaskRequest request, String username) {
+        User currentUser = userRepo.findByUsername(username);
+
+        Project project = projectRepo.findById(request.projectId()).orElse(null);
+
+        TaskStatus status = taskStatusRepo.findById(request.statusId()).orElse(null);
+
+        User assignedUser = null;
+        if (request.memberId() != null) {
+            assignedUser = userRepo.findById(request.memberId()).orElse(null);
+        }
+
+        Task task = Task.builder()
+                .title(request.title())
+                .description(request.description())
+                .project(project)
+                .assignedTo(assignedUser)
+                .status(status)
+                .priority(request.priority() != null ? request.priority() : PriorityStatus.MEDIUM)
+                .dueDate(request.dueDate())
+                .estimatedHours(request.estimatedHours())
+                .actualHours(0.0)
+                .createdBy(currentUser)
+                .build();
+
+        Task savedTask = taskRepo.save(task);
+
+        // TODO: Crear notificación si hay usuario asignado
+        // TODO: Enviar WebSocket broadcast
+        // TODO: Registrar en activity log
+
+        return taskMapper.toResponse(savedTask);
     }
 
-    public TaskResponse updateTask(UUID id, Task task, String username){
-        Task taskToUpdate = taskRepo.findByIdAndCreatedBy(id, userRepo.findByUsername(username));
-        taskRepo.save(task);
-        return taskMapper.toResponse(taskToUpdate);
+    public TaskResponse updateTask(UUID taskId, TaskUpdateRequest request, String username) {
+        // Obtener usuario actual
+        User currentUser = userRepo.findByUsername(username);
+
+        // Obtener la tarea
+        Task task = taskRepo.findById(taskId).orElse(null);
+
+        // Validar nuevo estado
+        TaskStatus newStatus = taskStatusRepo.findById(request.status()).orElse(null);
+
+        // Validar usuario asignado (si cambió)
+        User newAssignedUser = null;
+        if (request.memberId() != null) {
+            newAssignedUser = userRepo.findById(request.memberId()).orElse(null);
+        }
+
+        // Actualizar campos
+        task.setTitle(request.title());
+        task.setDescription(request.description());
+        task.setAssignedTo(newAssignedUser);
+        task.setStatus(newStatus);
+        task.setPriority(request.priority());
+        task.setDueDate(request.dueDate());
+        task.setEstimatedHours(request.estimatedHours());
+        task.setActualHours(request.actualHours());
+
+        Task updatedTask = taskRepo.save(task);
+
+        // TODO: Crear notificaciones si cambió el asignado o estado
+        // TODO: Enviar WebSocket broadcast
+        // TODO: Registrar cambios en activity log
+
+        return taskMapper.toResponse(updatedTask);
     }
 
     public TaskResponse patchTaskStatus(UUID id, PatchTaskStatusRequest request, String username){
@@ -94,7 +148,7 @@ public class TaskService {
 
     public List<Comment> getCommentsOnTask(UUID id){
         Task task = taskRepo.findById(id).orElse(null);
-        return task.getComment();
+        return task.getComments();
     }
 
     public Comment addCommentOnTask(UUID id, Comment comment, String username){

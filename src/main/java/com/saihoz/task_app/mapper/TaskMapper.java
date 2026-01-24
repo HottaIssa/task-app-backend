@@ -1,14 +1,28 @@
 package com.saihoz.task_app.mapper;
 
+import com.saihoz.task_app.dto.KanbanDTO.TaskCardResponse;
+import com.saihoz.task_app.dto.TaskDTO.TaskListResponse;
 import com.saihoz.task_app.dto.TaskDTO.TaskRequest;
 import com.saihoz.task_app.dto.TaskDTO.TaskResponse;
 import com.saihoz.task_app.dto.TaskDTO.TaskStatusResponse;
 import com.saihoz.task_app.dto.UserDTO.UserResponse;
+import com.saihoz.task_app.dto.UserDTO.UserSimpleResponse;
 import com.saihoz.task_app.model.*;
 import org.springframework.stereotype.Component;
 
 @Component
 public class TaskMapper {
+    public TaskListResponse toListResponse(Task task){
+        return new TaskListResponse(
+                task.getId(),
+                task.getTitle(),
+                task.getDescription(),
+                task.getStatus().getName(),
+                task.getPriority().getDisplayName(),
+                task.getDueDate()
+        );
+    }
+
     public TaskResponse toResponse(Task task){
         return new TaskResponse(
                 task.getId(),
@@ -26,12 +40,20 @@ public class TaskMapper {
                         task.getAssignedTo().getAvatar_url()),
                 new TaskStatusResponse(
                         task.getStatus().getId(),
-                        task.getStatus().getName().getDisplayName(),
-                        task.getStatus().getColor()),
-                task.getPriority().getDisplayName(),
+                        task.getStatus().getName(),
+                        task.getStatus().getColor(),
+                        task.getStatus().getOrderIndex()),
+                task.getPriority(),
                 task.getDueDate(),
                 task.getEstimatedHours(),
-                task.getActualHours()
+                task.getActualHours(),
+                new UserSimpleResponse(
+                        task.getAssignedTo().getId(),
+                        task.getAssignedTo().getUsername(),
+                        task.getAssignedTo().getEmail()
+                ),
+                task.getCreatedAt(),
+                task.getUpdatedAt()
         );
     }
 
@@ -47,5 +69,21 @@ public class TaskMapper {
         taskToSave.setEstimatedHours(request.estimatedHours());
         taskToSave.setCreatedBy(user);
         return taskToSave;
+    }
+
+    public TaskCardResponse toTaskCardResponse(Task task){
+        return new TaskCardResponse(
+                task.getId(),
+                task.getTitle(),
+                task.getDescription(),
+                task.getPriority().getDisplayName(),
+                task.getDueDate(),
+                task.isOverdue(),
+                new UserSimpleResponse(
+                        task.getAssignedTo().getId(),
+                        task.getAssignedTo().getUsername(),
+                        task.getAssignedTo().getEmail()
+                )
+        );
     }
 }

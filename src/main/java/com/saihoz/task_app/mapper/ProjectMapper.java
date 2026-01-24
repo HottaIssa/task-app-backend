@@ -4,6 +4,7 @@ import com.saihoz.task_app.dto.ProjectDTO.ProjectRequest;
 import com.saihoz.task_app.dto.ProjectDTO.ProjectResponse;
 import com.saihoz.task_app.dto.UserDTO.UserResponse;
 import com.saihoz.task_app.model.Project;
+import com.saihoz.task_app.model.ProjectStatus;
 import com.saihoz.task_app.model.User;
 import org.springframework.stereotype.Component;
 
@@ -36,7 +37,11 @@ public class ProjectMapper {
         project.setDescription(request.description());
         project.setStartDate(request.startDate());
         project.setEndDate(request.endDate());
-        project.setStatus(request.status());
+        if(request.status() == null){
+            project.setStatus(ProjectStatus.ACTIVE);
+        }else {
+            project.setStatus(request.status());
+        }
         project.setCreatedBy(user);
 
         return project;
