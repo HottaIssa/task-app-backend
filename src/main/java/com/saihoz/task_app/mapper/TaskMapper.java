@@ -77,6 +77,11 @@ public class TaskMapper {
                 task.getTitle(),
                 task.getDescription(),
                 task.getPriority().getDisplayName(),
+                new TaskStatusResponse(
+                        task.getStatus().getId(),
+                        task.getStatus().getName(),
+                        task.getStatus().getColor(),
+                        task.getStatus().getOrderIndex()),
                 task.getDueDate(),
                 task.isOverdue(),
                 new UserSimpleResponse(

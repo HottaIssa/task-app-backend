@@ -3,6 +3,7 @@ package com.saihoz.task_app.service;
 
 import com.saihoz.task_app.model.User;
 import com.saihoz.task_app.model.UserPrincipal;
+import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -17,7 +18,7 @@ public class MyUserDetailsService implements UserDetailsService {
     private UserRepo repo;
 
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+    public UserDetails loadUserByUsername(@NonNull String username) throws UsernameNotFoundException {
 
         User user = repo.findByUsername(username);
 

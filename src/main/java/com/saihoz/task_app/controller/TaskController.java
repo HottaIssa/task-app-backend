@@ -1,5 +1,6 @@
 package com.saihoz.task_app.controller;
 
+import com.saihoz.task_app.dto.KanbanDTO.TaskCardResponse;
 import com.saihoz.task_app.dto.TaskDTO.PatchTaskStatusRequest;
 import com.saihoz.task_app.dto.TaskDTO.TaskRequest;
 import com.saihoz.task_app.dto.TaskDTO.TaskResponse;
@@ -12,6 +13,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.data.web.PagedModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -32,17 +34,19 @@ public class TaskController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<TaskResponse>> getAllTasks(@RequestParam(required = false) Long projectId,
-                                                  @RequestParam(required = false) String status,
-                                                  @RequestParam(required = false) String priority,
-                                                  @RequestParam(required = false) String search,
-                                                  @RequestParam(required = false) LocalDateTime dueFrom,
-                                                  @RequestParam(required = false) LocalDateTime dueTo,
-                                                  @RequestParam(required = false) Boolean isOverdue,
-                                                  @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable, @AuthenticationPrincipal UserDetails user){
+    public ResponseEntity<PagedModel<TaskCardResponse>> getAllTasks(@RequestParam(required = false) Long projectId,
+                                                                @RequestParam(required = false) String status,
+                                                                @RequestParam(required = false) String priority,
+                                                                @RequestParam(required = false) String search,
+                                                                @RequestParam(required = false) LocalDateTime dueFrom,
+                                                                @RequestParam(required = false) LocalDateTime dueTo,
+                                                                @RequestParam(required = false) Boolean isOverdue,
+                                                                @RequestParam(required = false) Boolean isAssignedToMe,
+                                                                @RequestParam(required = false) Boolean isCreatedByMe,
+                                                                @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable, @AuthenticationPrincipal UserDetails user){
         String username = user.getUsername();
-        Page<TaskResponse> tasks = taskService.findTasksWithFilter(projectId, status, priority, search,
-                dueFrom, dueTo, isOverdue, username, pageable);
+        PagedModel<TaskCardResponse> tasks = taskService.findTasksWithFilter(projectId, status, priority, search,
+                dueFrom, dueTo, isOverdue, isAssignedToMe, isCreatedByMe,username, pageable);
 
         return ResponseEntity.ok(tasks);
     }

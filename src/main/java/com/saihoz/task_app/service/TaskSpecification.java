@@ -1,21 +1,31 @@
 package com.saihoz.task_app.service;
 
 import com.saihoz.task_app.model.Task;
+import com.saihoz.task_app.model.TaskStatus;
+import com.saihoz.task_app.model.User;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.time.LocalDateTime;
 
 public class TaskSpecification {
+
+    public static Specification<Task> isOwnerOrAssignee(User user) {
+        return (root, query, cb) -> cb.or(
+                cb.equal(root.get("createdBy"), user),
+                cb.equal(root.get("assignedTo"), user)
+        );
+    }
+
     public static Specification<Task> projectId(Long projectId) {
         return (root, query, cb) ->
                 projectId == null ? null :
                         cb.equal(root.get("project").get("id"), projectId);
     }
 
-    public static Specification<Task> status(String status) {
+    public static Specification<Task> status(TaskStatus status) {
         return (root, query, cb) ->
                 status == null ? null :
-                        cb.equal(cb.lower(root.get("statusId")), status.toLowerCase());
+                        cb.equal(root.get("status"), status);
     }
 
     public static Specification<Task> priority(String priority) {
@@ -60,6 +70,22 @@ public class TaskSpecification {
             return isOverdue
                     ? cb.lessThan(root.get("dueDate"), now)
                     : cb.greaterThanOrEqualTo(root.get("dueDate"), now);
+        };
+    }
+
+    public static Specification<Task> isAssignedToMe(Boolean isAssignedTo, User user) {
+        return (root, query, cb) -> {
+            if (isAssignedTo == null || isAssignedTo == false) return null;
+
+            return cb.equal(root.get("assignedTo"), user);
+        };
+    }
+
+    public static Specification<Task> isCreatedByMe(Boolean isCreatedByMe, User user) {
+        return (root, query, cb) -> {
+            if (isCreatedByMe == null || isCreatedByMe == false) return null;
+
+            return cb.equal(root.get("createdBy"), user);
         };
     }
 }

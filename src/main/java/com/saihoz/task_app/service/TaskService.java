@@ -1,5 +1,6 @@
 package com.saihoz.task_app.service;
 
+import com.saihoz.task_app.dto.KanbanDTO.TaskCardResponse;
 import com.saihoz.task_app.dto.TaskDTO.PatchTaskStatusRequest;
 import com.saihoz.task_app.dto.TaskDTO.TaskRequest;
 import com.saihoz.task_app.dto.TaskDTO.TaskResponse;
@@ -11,6 +12,8 @@ import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.web.PagedModel;
+import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -42,20 +45,24 @@ public class TaskService {
         this.projectRepo = projectRepo;
     }
 
-    public Page<TaskResponse> findTasksWithFilter(Long projectId, String status, String priority, String search,
-                                          LocalDateTime dueFrom, LocalDateTime dueTo, Boolean isOverdue, String username, Pageable pageable){
+    public PagedModel<TaskCardResponse> findTasksWithFilter(Long projectId, String status, String priority, String search,
+                                                        LocalDateTime dueFrom, LocalDateTime dueTo, Boolean isOverdue, Boolean isAssignedToMe, Boolean isCreatedByMe, String username, Pageable pageable){
+        User user = userRepo.findByUsername(username);
 
         Specification<Task> spec = Specification
-                .where(TaskSpecification.projectId(projectId))
-                .and(TaskSpecification.status(status))
+                .where(TaskSpecification.isOwnerOrAssignee(user))
+                .and(TaskSpecification.projectId(projectId))
+                .and(TaskSpecification.status(taskStatusRepo.findByName(status)))
                 .and(TaskSpecification.priority(priority))
                 .and(TaskSpecification.search(search))
                 .and(TaskSpecification.dueBetween(dueFrom, dueTo))
-                .and(TaskSpecification.isOverdue(isOverdue));
+                .and(TaskSpecification.isOverdue(isOverdue))
+                .and(TaskSpecification.isAssignedToMe(isAssignedToMe, user))
+                .and(TaskSpecification.isCreatedByMe(isCreatedByMe, user));
 
-        User user = userRepo.findByUsername(username);
-        Page<Task> tasks = taskRepo.findByCreatedBy(user, spec, pageable);
-        return tasks.map(taskMapper::toResponse);
+        Page<Task> tasks = taskRepo.findAll(spec, pageable);
+        Page<TaskCardResponse> responsePage = tasks.map(taskMapper::toTaskCardResponse);
+        return new PagedModel<>(responsePage);
     }
 
     public TaskResponse getTask(UUID taskId) {

@@ -2,10 +2,8 @@ package com.saihoz.task_app.controller;
 
 import com.saihoz.task_app.dto.KanbanDTO.KanbanBoardResponse;
 import com.saihoz.task_app.dto.KanbanDTO.KanbanColumnResponse;
-import com.saihoz.task_app.dto.ProjectDTO.ProjectMemberRequest;
-import com.saihoz.task_app.dto.ProjectDTO.ProjectMemberResponse;
-import com.saihoz.task_app.dto.ProjectDTO.ProjectRequest;
-import com.saihoz.task_app.dto.ProjectDTO.ProjectResponse;
+import com.saihoz.task_app.dto.ProjectDTO.*;
+import com.saihoz.task_app.dto.TaskDTO.PatchTaskStatusRequest;
 import com.saihoz.task_app.dto.TaskDTO.TaskListResponse;
 import com.saihoz.task_app.dto.TaskDTO.TaskResponse;
 import com.saihoz.task_app.dto.TaskDTO.TaskStatusResponse;
@@ -53,8 +51,13 @@ public class ProjectController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Project> updateProject(@PathVariable UUID id,@Valid @RequestBody ProjectRequest request, @AuthenticationPrincipal UserDetails user){
+    public ResponseEntity<ProjectResponse> updateProject(@PathVariable UUID id,@Valid @RequestBody ProjectRequest request, @AuthenticationPrincipal UserDetails user){
         return ResponseEntity.ok().body(service.updateProject(id, request, user.getUsername()));
+    }
+
+    @PatchMapping("/{id}")
+    public ResponseEntity<ProjectResponse> updateTaskStatus(@PathVariable UUID id, @RequestBody ProjectRequest request, @AuthenticationPrincipal UserDetails user){
+        return ResponseEntity.ok().body(service.patchProject(id, request, user.getUsername()));
     }
 
     @GetMapping("/{projectId}/members")

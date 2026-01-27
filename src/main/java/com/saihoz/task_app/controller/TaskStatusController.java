@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/task-statusId")
+@RequestMapping("/api/task-status")
 public class TaskStatusController {
 
     @Autowired

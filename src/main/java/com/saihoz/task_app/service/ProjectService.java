@@ -47,7 +47,7 @@ public class ProjectService {
 
     public List<ProjectResponse> getAllProjects(String username){
         User user = userRepo.findByUsername(username);
-        List<Project> projects = projectRepo.findByCreatedBy(user);
+        List<Project> projects = projectRepo.findByMembers(user);
         return projects.stream()
                 .map(project -> projectMapper.toResponse(project))
                 .collect(Collectors.toList());
@@ -55,7 +55,7 @@ public class ProjectService {
 
     public ProjectResponse getProject(UUID id, String username){
         User user = userRepo.findByUsername(username);
-        return projectMapper.toResponse(projectRepo.findByIdAndCreatedBy(id, user));
+        return projectMapper.toResponse(projectRepo.findByIdAndMember(id, user));
     }
 
     public ProjectResponse addProject(ProjectRequest request, String username){
@@ -67,53 +67,70 @@ public class ProjectService {
         return projectSaved;
     }
 
-    public Project updateProject(UUID id, ProjectRequest request, String username){
+    public ProjectResponse updateProject(UUID id, ProjectRequest request, String username){
         User user = userRepo.findByUsername(username);
-        Project project = projectRepo.findByIdAndCreatedBy(id, user);
+        Project project = projectRepo.findByIdAndMember(id, user);
         project.setName(request.name());
         project.setDescription(request.description());
         project.setStartDate(request.startDate());
         project.setEndDate(request.endDate());
         project.setStatus(request.status());
-        return project;
+        Project updatedProject = projectRepo.save(project);
+        return projectMapper.toResponse(updatedProject);
+    }
+
+    public ProjectResponse patchProject(UUID id, ProjectRequest request, String username){
+        User user = userRepo.findByUsername(username);
+        Project project = projectRepo.findByIdAndMember(id, user);
+        if (request.name() != null) {
+            project.setName(request.name());
+        }
+        if (request.description() != null) {
+            project.setDescription(request.description());
+        }
+        if (request.status() != null) {
+            project.setStatus(request.status());
+        }
+        if (request.endDate() != null) {
+            project.setEndDate(request.endDate());
+        }
+        Project updatedProject = projectRepo.save(project);
+        return projectMapper.toResponse(updatedProject);
     }
 
     public void deleteProject(UUID id, String username){
         User user = userRepo.findByUsername(username);
-        projectRepo.delete(projectRepo.findByIdAndCreatedBy(id, user));
+        Project project = projectRepo.findByIdAndMember(id, user);
+        ProjectMember member = memberRepo.findByUserAndProject(user, project);
+        if(!member.hasAdminPermissions()){
+            projectRepo.delete(project);
+        }
     }
 
     public KanbanBoardResponse getKanbanBoard(UUID projectId, String username) {
-        // Obtener usuario actual
         User currentUser = userRepo.findByUsername(username);
 
-        // Obtener proyecto
         Project project = projectRepo.findById(projectId).orElse(null);
 
-        // Obtener TODOS los estados (globales + del proyecto), ordenados
+        ProjectMember member = memberRepo.findByUserAndProject(currentUser, project);
+
         List<TaskStatus> allStatuses = taskStatusRepo
                 .findByProjectOrProjectIsNullOrderByOrderIndex(project);
 
-        // Obtener TODAS las tareas del proyecto
         List<Task> tasks = taskRepo.findByProjectOrderByCreatedAtDesc(project);
 
-        // Agrupar tareas por estado
         Map<Long, List<Task>> tasksByStatusId = tasks.stream()
                 .collect(Collectors.groupingBy(task -> task.getStatus().getId()));
 
-        // Crear el mapa de columnas ordenado (LinkedHashMap mantiene el orden)
         Map<String, KanbanColumnResponse> columns = new LinkedHashMap<>();
 
         for (TaskStatus status : allStatuses) {
-            // Obtener las tareas de este estado (o lista vacía si no hay)
             List<Task> statusTasks = tasksByStatusId.getOrDefault(status.getId(), new ArrayList<>());
 
-            // Convertir tareas a DTOs
             List<TaskCardResponse> taskCards = statusTasks.stream()
                     .map(taskMapper::toTaskCardResponse)
                     .collect(Collectors.toList());
 
-            // Crear la columna
             KanbanColumnResponse column = new KanbanColumnResponse(
                     status.getId(),
                     status.getName(),
@@ -129,7 +146,8 @@ public class ProjectService {
                         project.getId(),
                         project.getName(),
                         project.getTotalTasks(),
-                        (int) project.getCompletedTasksCount());
+                        (int) project.getCompletedTasksCount(),
+                        member.getRoleMember());
 
         // Retornar el tablero completo
             return new KanbanBoardResponse(columns.values().stream().toList(), projectSummary);
@@ -137,7 +155,7 @@ public class ProjectService {
 
     public List<ProjectMemberResponse> getMembersOnProject(UUID id, String username){
         User user = userRepo.findByUsername(username);
-        Project project = projectRepo.findByIdAndCreatedBy(id, user);
+        Project project = projectRepo.findByIdAndMember(id, user);
         List<ProjectMember> members = memberRepo.findByProject(project);
         return members.stream()
                 .map(projectMemberMapper::toResponse)
@@ -146,7 +164,7 @@ public class ProjectService {
 
     public ProjectMemberResponse addMemberOnProject(UUID id, ProjectMemberRequest member, String username){
         User user = userRepo.findByUsername(username);
-        Project project = projectRepo.findByIdAndCreatedBy(id, user);
+        Project project = projectRepo.findByIdAndMember(id, user);
         User userMember = userRepo.findById(member.userId()).orElse(null);
         ProjectMember projectMember = projectMemberMapper.toEntity(userMember, project, member.role());
         memberRepo.save(projectMember);
@@ -155,8 +173,8 @@ public class ProjectService {
 
     public void deleteMemberOnProject(UUID projectId, UUID memberId, String username){
         User user = userRepo.findByUsername(username);
-        Project project = projectRepo.findByIdAndCreatedBy(projectId, user);
-        ProjectMember member = memberRepo.findByIdAndProject(memberId, project);
+        Project project = projectRepo.findByIdAndMember(projectId, user);
+        ProjectMember member = memberRepo.findByUserAndProject(user, project);
         memberRepo.delete(member);
     }
 }

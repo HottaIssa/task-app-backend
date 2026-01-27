@@ -12,14 +12,12 @@ import java.util.List;
 @Repository
 public interface TaskStatusRepo extends JpaRepository<TaskStatus, Long> {
 
-    // Obtener estados del proyecto + estados globales, ordenados
     @Query("SELECT ts FROM TaskStatus ts WHERE ts.project = :project OR ts.project IS NULL ORDER BY ts.orderIndex ASC")
     List<TaskStatus> findByProjectOrProjectIsNullOrderByOrderIndex(@Param("project") Project project);
 
-    // Solo estados globales
     List<TaskStatus> findByProjectIsNullOrderByOrderIndex();
 
-    // Estados de un proyecto específico
     List<TaskStatus> findByProjectOrderByOrderIndex(Project project);
 
+    TaskStatus findByName(String status);
 }

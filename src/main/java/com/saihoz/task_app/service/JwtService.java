@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
+import javax.crypto.SecretKey;
 import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
@@ -33,7 +34,7 @@ public class JwtService {
                 .compact();
     }
 
-    private Key getKey(){
+    private SecretKey getKey(){
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         return Keys.hmacShaKeyFor(keyBytes);
     }
@@ -48,7 +49,7 @@ public class JwtService {
     }
 
     private Claims extractAllClaims(String token){
-        return Jwts.parser().setSigningKey(getKey()).build().parseClaimsJws(token).getBody();
+        return Jwts.parser().verifyWith(getKey()).build().parseSignedClaims(token).getPayload();
     }
 
     public boolean validateToken(String token, UserDetails userDetails) {
