@@ -30,23 +30,26 @@ public class TaskService {
 
     private final CommentRepo commentRepo;
 
+    private final MemberRepo memberRepo;
+
     private final TaskStatusRepo taskStatusRepo;
 
     private final TaskMapper taskMapper;
 
     private final ProjectRepo projectRepo;
 
-    public TaskService(TaskRepo taskRepo, UserRepo userRepo, CommentRepo commentRepo, TaskStatusRepo taskStatusRepo, TaskMapper taskMapper, ProjectRepo projectRepo) {
+    public TaskService(TaskRepo taskRepo, UserRepo userRepo, CommentRepo commentRepo, TaskStatusRepo taskStatusRepo, TaskMapper taskMapper, ProjectRepo projectRepo, MemberRepo memberRepo) {
         this.taskRepo = taskRepo;
         this.userRepo = userRepo;
         this.commentRepo = commentRepo;
         this.taskStatusRepo = taskStatusRepo;
         this.taskMapper = taskMapper;
         this.projectRepo = projectRepo;
+        this.memberRepo = memberRepo;
     }
 
     public PagedModel<TaskCardResponse> findTasksWithFilter(Long projectId, String status, String priority, String search,
-                                                        LocalDateTime dueFrom, LocalDateTime dueTo, Boolean isOverdue, Boolean isAssignedToMe, Boolean isCreatedByMe, String username, Pageable pageable){
+                                                            LocalDateTime dueFrom, LocalDateTime dueTo, Boolean isOverdue, Boolean isAssignedToMe, Boolean isCreatedByMe, String username, Pageable pageable) {
         User user = userRepo.findByUsername(username);
 
         Specification<Task> spec = Specification
@@ -72,65 +75,39 @@ public class TaskService {
         return taskMapper.toResponse(task);
     }
 
+    @Transactional
     public TaskResponse addTask(TaskRequest request, String username) {
         User currentUser = userRepo.findByUsername(username);
 
         Project project = projectRepo.findById(request.projectId()).orElse(null);
 
-        TaskStatus status = taskStatusRepo.findById(request.statusId()).orElse(null);
+        TaskStatus status = taskStatusRepo.findByName(request.status());
 
-        User assignedUser = null;
-        if (request.memberId() != null) {
-            assignedUser = userRepo.findById(request.memberId()).orElse(null);
-        }
-
-        Task task = Task.builder()
-                .title(request.title())
-                .description(request.description())
-                .project(project)
-                .assignedTo(assignedUser)
-                .status(status)
-                .priority(request.priority() != null ? request.priority() : PriorityStatus.MEDIUM)
-                .dueDate(request.dueDate())
-                .estimatedHours(request.estimatedHours())
-                .actualHours(0.0)
-                .createdBy(currentUser)
-                .build();
+        Task task = taskMapper.toEntity(request, currentUser, request.priority() != null ? request.priority() : PriorityStatus.MEDIUM, project, status);
 
         Task savedTask = taskRepo.save(task);
-
-        // TODO: Crear notificación si hay usuario asignado
-        // TODO: Enviar WebSocket broadcast
-        // TODO: Registrar en activity log
-
         return taskMapper.toResponse(savedTask);
     }
 
     public TaskResponse updateTask(UUID taskId, TaskUpdateRequest request, String username) {
-        // Obtener usuario actual
-        User currentUser = userRepo.findByUsername(username);
+        User user = userRepo.findByUsername(username);
 
-        // Obtener la tarea
+        TaskStatus newStatus = taskStatusRepo.findByName(request.status());
+
         Task task = taskRepo.findById(taskId).orElse(null);
 
-        // Validar nuevo estado
-        TaskStatus newStatus = taskStatusRepo.findById(request.status()).orElse(null);
+        ProjectMember newAssignedMember = request.memberId() != null ? memberRepo.findById(request.memberId()).orElse(null) : null;
 
-        // Validar usuario asignado (si cambió)
-        User newAssignedUser = null;
-        if (request.memberId() != null) {
-            newAssignedUser = userRepo.findById(request.memberId()).orElse(null);
-        }
-
-        // Actualizar campos
         task.setTitle(request.title());
         task.setDescription(request.description());
-        task.setAssignedTo(newAssignedUser);
+        if(newAssignedMember != null){
+            task.setAssignedTo(task.getProject().isMember(newAssignedMember.getUser()) ? newAssignedMember : null);
+        } else {
+            task.setAssignedTo(null);
+        }
         task.setStatus(newStatus);
         task.setPriority(request.priority());
         task.setDueDate(request.dueDate());
-        task.setEstimatedHours(request.estimatedHours());
-        task.setActualHours(request.actualHours());
 
         Task updatedTask = taskRepo.save(task);
 
@@ -141,24 +118,29 @@ public class TaskService {
         return taskMapper.toResponse(updatedTask);
     }
 
-    public TaskResponse patchTaskStatus(UUID id, PatchTaskStatusRequest request, String username){
-        Task taskToUpdate = taskRepo.findByIdAndCreatedBy(id, userRepo.findByUsername(username));
-        taskToUpdate.setStatus(taskStatusRepo.findById(request.statusId()).orElse(null));
+    public TaskResponse patchTaskStatus(UUID id, String username) {
+        User user = userRepo.findByUsername(username);
+        Task taskToUpdate = taskRepo.findById(id).orElse(null);
+        ProjectMember member = memberRepo.findByUserAndProject(user, taskToUpdate.getProject());
+        if(!taskToUpdate.canUpdateStatus(member) || !member.hasAdminPermissions()) throw new RuntimeException("No puedes editar");
+        if(taskToUpdate.isCompleted()) throw new RuntimeException("No puedes editar");
+        taskToUpdate.setStatus(taskStatusRepo.findById(taskToUpdate.getStatus().getId() + 1).orElse(null));
         taskRepo.save(taskToUpdate);
         return taskMapper.toResponse(taskToUpdate);
     }
 
-    public void deleteTask(UUID id, String username){
-        Task taskToDelete = taskRepo.findByIdAndCreatedBy(id, userRepo.findByUsername(username));
+    public void deleteTask(UUID id, String username) {
+        Task taskToDelete = taskRepo.findById(id).orElse(null);
+        if(!taskToDelete.getCreatedBy().getUsername().equals(username)) throw new RuntimeException("No puedes eliminar");
         taskRepo.delete(taskToDelete);
     }
 
-    public List<Comment> getCommentsOnTask(UUID id){
+    public List<Comment> getCommentsOnTask(UUID id) {
         Task task = taskRepo.findById(id).orElse(null);
         return task.getComments();
     }
 
-    public Comment addCommentOnTask(UUID id, Comment comment, String username){
+    public Comment addCommentOnTask(UUID id, Comment comment, String username) {
         User user = userRepo.findByUsername(username);
         Task task = taskRepo.findById(id).orElse(null);
         comment.setTask(task);

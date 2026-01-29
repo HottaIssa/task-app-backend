@@ -9,6 +9,7 @@ public record ProjectMemberResponse(
         UUID id,
         UserResponse user,
         String roleMember,
-        LocalDateTime joinedAt
+        LocalDateTime joinedAt,
+        Boolean isActive
 ) {
 }

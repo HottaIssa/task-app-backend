@@ -52,7 +52,7 @@ public class TaskController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<TaskResponse> getTask(@PathVariable UUID id, @AuthenticationPrincipal UserDetails user){
+    public ResponseEntity<TaskResponse> getTask(@PathVariable UUID id){
         return ResponseEntity.ok().body(taskService.getTask(id));
     }
 
@@ -73,8 +73,8 @@ public class TaskController {
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<TaskResponse> updateTaskStatus(@PathVariable UUID id, @RequestBody PatchTaskStatusRequest request, @AuthenticationPrincipal UserDetails user){
-        return ResponseEntity.ok().body(taskService.patchTaskStatus(id, request, user.getUsername()));
+    public ResponseEntity<TaskResponse> updateTaskStatus(@PathVariable UUID id, @AuthenticationPrincipal UserDetails user){
+        return ResponseEntity.ok().body(taskService.patchTaskStatus(id, user.getUsername()));
     }
 
     @GetMapping("/{id}/comments")

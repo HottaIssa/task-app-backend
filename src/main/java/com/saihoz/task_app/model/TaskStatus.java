@@ -26,16 +26,16 @@ public class TaskStatus {
 
     @Column(name = "order_index", nullable = false)
     @Builder.Default
-    private Integer orderIndex = 0; // ✅ Para ordenar las columnas del Kanban
+    private Integer orderIndex = 0;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "project_id")
-    private Project project; // ✅ null = estado global, no-null = estado del proyecto
+    private Project project;
 
     @Column(name = "is_system", nullable = false)
     @Builder.Default
-    private Boolean isSystem = false; // ✅ Los estados del sistema no se pueden eliminar
+    private Boolean isSystem = false;
 
     @OneToMany(mappedBy = "status")
-    private List<Task> tasks = new ArrayList<>(); // ✅ Relación bidireccional
+    private List<Task> tasks = new ArrayList<>();
 }

@@ -2,6 +2,7 @@ package com.saihoz.task_app.controller;
 
 import com.saihoz.task_app.dto.LoginResponse;
 import com.saihoz.task_app.dto.RegisterResponse;
+import com.saihoz.task_app.dto.UserDTO.UserResponse;
 import com.saihoz.task_app.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -9,6 +10,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import com.saihoz.task_app.service.JwtService;
 import com.saihoz.task_app.service.UserService;
@@ -43,5 +46,10 @@ public class AuthController {
         } else {
             return new ResponseEntity<>("Login Failed", HttpStatus.BAD_REQUEST);
         }
+    }
+
+    @GetMapping("me")
+    public ResponseEntity<UserResponse> getMe(@AuthenticationPrincipal UserDetails user){
+        return ResponseEntity.ok().body(service.getUserByUsername(user.getUsername()));
     }
 }

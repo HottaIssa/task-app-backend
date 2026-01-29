@@ -1,5 +1,6 @@
 package com.saihoz.task_app.dto.TaskDTO;
 
+import com.saihoz.task_app.dto.ProjectDTO.ProjectMemberResponse;
 import com.saihoz.task_app.dto.UserDTO.UserResponse;
 import com.saihoz.task_app.dto.UserDTO.UserSimpleResponse;
 import com.saihoz.task_app.model.PriorityStatus;
@@ -13,11 +14,10 @@ public record TaskResponse(
         String description,
         UUID projectId,
         String projectName,
-        UserResponse member,
+        ProjectMemberResponse member,
         TaskStatusResponse status,
         PriorityStatus priority,
         LocalDateTime dueDate,
-        Double estimatedHours,
         Double actualHours,
         UserSimpleResponse createdBy,
         LocalDateTime createdAt,

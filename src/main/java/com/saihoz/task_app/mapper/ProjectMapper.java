@@ -2,7 +2,6 @@ package com.saihoz.task_app.mapper;
 
 import com.saihoz.task_app.dto.ProjectDTO.ProjectRequest;
 import com.saihoz.task_app.dto.ProjectDTO.ProjectResponse;
-import com.saihoz.task_app.dto.UserDTO.UserResponse;
 import com.saihoz.task_app.model.Project;
 import com.saihoz.task_app.model.ProjectStatus;
 import com.saihoz.task_app.model.User;
@@ -10,6 +9,12 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class ProjectMapper {
+
+    private final UserMapper userMapper;
+
+    public ProjectMapper(UserMapper userMapper) {
+        this.userMapper = userMapper;
+    }
 
     public ProjectResponse toResponse(Project project){
         return new ProjectResponse(
@@ -19,15 +24,7 @@ public class ProjectMapper {
                 project.getStatus().getDisplayName(),
                 project.getStartDate(),
                 project.getEndDate(),
-                new UserResponse(
-                        project.getCreatedBy().getId(),
-                        project.getCreatedBy().getUsername(),
-                        project.getCreatedBy().getEmail(),
-                        project.getCreatedBy().getFirstName(),
-                        project.getCreatedBy().getLastName(),
-                        project.getCreatedBy().getRole().getDisplayName(),
-                        project.getCreatedBy().getAvatar_url()
-                )
+                userMapper.toSimpleResponse(project.getCreatedBy())
         );
     }
 

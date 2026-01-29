@@ -9,10 +9,7 @@ public record TaskRequest(
         String title,
         String description,
         UUID projectId,
-        UUID memberId,
-        Long statusId,
-        PriorityStatus priority,
-        LocalDateTime dueDate,
-        Double estimatedHours
+        String status,
+        PriorityStatus priority
 ) {
 }

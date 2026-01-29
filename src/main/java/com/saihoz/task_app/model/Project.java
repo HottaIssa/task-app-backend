@@ -26,12 +26,12 @@ public class Project {
 
     @NotBlank(message = "The name of the project cannot be empty")
     @Size(max = 50, message = "The name of the project cannot exceed 50 characters")
-    @Column(unique = true, nullable = false) // ✅ Constraint en BD
+    @Column(nullable = false)
     private String name;
 
     @NotBlank(message = "The description of the project cannot be empty")
     @Size(max = 200, message = "The description of the project cannot exceed 200 characters")
-    @Column(nullable = false) // ✅ Constraint en BD
+    @Column(nullable = false)
     private String description;
 
     @ManyToOne(fetch = FetchType.LAZY)

@@ -13,6 +13,7 @@ import java.util.UUID;
 @Getter
 @Setter
 @Table(name = "project_member")
+@Builder
 public class ProjectMember {
 
     @Id
@@ -33,6 +34,10 @@ public class ProjectMember {
     @CreationTimestamp
     @Column(name = "joined_at")
     private LocalDateTime joinedAt;
+
+    @Column(name = "is_active", nullable = false)
+    @Builder.Default
+    private Boolean isActive = true;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "invited_by")

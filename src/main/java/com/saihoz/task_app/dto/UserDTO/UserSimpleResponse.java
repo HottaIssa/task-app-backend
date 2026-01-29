@@ -5,6 +5,7 @@ import java.util.UUID;
 public record UserSimpleResponse(
         UUID id,
         String username,
-        String email
+        String email,
+        String avatar_url
 ) {
 }

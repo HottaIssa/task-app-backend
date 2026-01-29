@@ -12,6 +12,7 @@ import com.saihoz.task_app.mapper.ProjectMemberMapper;
 import com.saihoz.task_app.mapper.TaskMapper;
 import com.saihoz.task_app.model.*;
 import com.saihoz.task_app.repo.*;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -61,7 +62,7 @@ public class ProjectService {
     public ProjectResponse addProject(ProjectRequest request, String username){
         User user = userRepo.findByUsername(username);
         Project project = projectMapper.toEntity(request, user);
-        ProjectMember projectMember = projectMemberMapper.toEntity(user, project, RoleMember.ADMIN);
+        ProjectMember projectMember = projectMemberMapper.toEntity(user, project, RoleMember.ADMIN, null);
         ProjectResponse projectSaved = projectMapper.toResponse(projectRepo.save(project));
         memberRepo.save(projectMember);
         return projectSaved;
@@ -166,15 +167,37 @@ public class ProjectService {
         User user = userRepo.findByUsername(username);
         Project project = projectRepo.findByIdAndMember(id, user);
         User userMember = userRepo.findById(member.userId()).orElse(null);
-        ProjectMember projectMember = projectMemberMapper.toEntity(userMember, project, member.role());
+        ProjectMember projectMember = projectMemberMapper.toEntity(userMember, project, member.role(), user);
         memberRepo.save(projectMember);
         return projectMemberMapper.toResponse(projectMember);
     }
 
-    public void deleteMemberOnProject(UUID projectId, UUID memberId, String username){
+    public ProjectMemberResponse patchRoleMember(UUID projectId,UUID memberId , PatchRoleMemberRequest request, String username) {
         User user = userRepo.findByUsername(username);
-        Project project = projectRepo.findByIdAndMember(projectId, user);
-        ProjectMember member = memberRepo.findByUserAndProject(user, project);
-        memberRepo.delete(member);
+        Project project = projectRepo.findById(projectId).orElse(null);
+        if(!project.isAdmin(user)) throw new RuntimeException("No tienes el nivel requerido para realizar esta acción");
+        ProjectMember member = memberRepo.findById(memberId).orElse(null);
+        member.setRoleMember(request.role());
+        return projectMemberMapper.toResponse(memberRepo.save(member));
     }
+
+    public ProjectMemberResponse patchDeactivateMember(UUID projectId,UUID memberId, String username) {
+        User user = userRepo.findByUsername(username);
+        Project project = projectRepo.findById(projectId).orElse(null);
+        if(!project.isAdmin(user)) throw new RuntimeException("No tienes el nivel requerido para realizar esta acción");
+        ProjectMember member = memberRepo.findById(memberId).orElse(null);
+        member.setIsActive(false);
+        return projectMemberMapper.toResponse(memberRepo.save(member));
+    }
+
+    public ProjectMemberResponse patchActivateMember(UUID projectId,UUID memberId, String username) {
+        User user = userRepo.findByUsername(username);
+        Project project = projectRepo.findById(projectId).orElse(null);
+        if(!project.isAdmin(user)) throw new RuntimeException("No tienes el nivel requerido para realizar esta acción");
+        ProjectMember member = memberRepo.findById(memberId).orElse(null);
+        member.setIsActive(true);
+        return projectMemberMapper.toResponse(memberRepo.save(member));
+    }
+
+
 }

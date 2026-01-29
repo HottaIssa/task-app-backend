@@ -1,6 +1,7 @@
 package com.saihoz.task_app.dto.ProjectDTO;
 
 import com.saihoz.task_app.dto.UserDTO.UserResponse;
+import com.saihoz.task_app.dto.UserDTO.UserSimpleResponse;
 import com.saihoz.task_app.model.ProjectStatus;
 
 import java.time.LocalDate;
@@ -14,6 +15,6 @@ public record ProjectResponse(
         String status,
         LocalDate startDate,
         LocalDate endDate,
-        UserResponse createdBy
+        UserSimpleResponse createdBy
 ) {
 }

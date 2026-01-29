@@ -9,10 +9,9 @@ public record TaskUpdateRequest(
         String title,
         String description,
         UUID memberId,
-        Long status,
+        String status,
         PriorityStatus priority,
         LocalDateTime dueDate,
-        Double estimatedHours,
         Double actualHours
 ) {
 }

@@ -12,7 +12,7 @@ public class TaskSpecification {
     public static Specification<Task> isOwnerOrAssignee(User user) {
         return (root, query, cb) -> cb.or(
                 cb.equal(root.get("createdBy"), user),
-                cb.equal(root.get("assignedTo"), user)
+                cb.equal(root.get("assignedTo").get("user"), user)
         );
     }
 
@@ -77,7 +77,7 @@ public class TaskSpecification {
         return (root, query, cb) -> {
             if (isAssignedTo == null || isAssignedTo == false) return null;
 
-            return cb.equal(root.get("assignedTo"), user);
+            return cb.equal(root.get("assignedTo").get("user"), user);
         };
     }
 

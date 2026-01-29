@@ -1,6 +1,7 @@
 package com.saihoz.task_app.mapper;
 
 import com.saihoz.task_app.dto.KanbanDTO.TaskCardResponse;
+import com.saihoz.task_app.dto.ProjectDTO.ProjectMemberResponse;
 import com.saihoz.task_app.dto.TaskDTO.TaskListResponse;
 import com.saihoz.task_app.dto.TaskDTO.TaskRequest;
 import com.saihoz.task_app.dto.TaskDTO.TaskResponse;
@@ -12,15 +13,14 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class TaskMapper {
-    public TaskListResponse toListResponse(Task task){
-        return new TaskListResponse(
-                task.getId(),
-                task.getTitle(),
-                task.getDescription(),
-                task.getStatus().getName(),
-                task.getPriority().getDisplayName(),
-                task.getDueDate()
-        );
+
+    private final ProjectMemberMapper projectMemberMapper;
+
+    private final UserMapper userMapper;
+
+    public TaskMapper(ProjectMemberMapper projectMemberMapper, UserMapper userMapper) {
+        this.projectMemberMapper = projectMemberMapper;
+        this.userMapper = userMapper;
     }
 
     public TaskResponse toResponse(Task task){
@@ -30,14 +30,7 @@ public class TaskMapper {
                 task.getDescription(),
                 task.getProject().getId(),
                 task.getProject().getName(),
-                new UserResponse(
-                        task.getAssignedTo().getId(),
-                        task.getAssignedTo().getUsername(),
-                        task.getAssignedTo().getEmail(),
-                        task.getAssignedTo().getFirstName(),
-                        task.getAssignedTo().getLastName(),
-                        task.getAssignedTo().getRole().getDisplayName(),
-                        task.getAssignedTo().getAvatar_url()),
+                projectMemberMapper.toResponse(task.getAssignedTo()),
                 new TaskStatusResponse(
                         task.getStatus().getId(),
                         task.getStatus().getName(),
@@ -45,29 +38,24 @@ public class TaskMapper {
                         task.getStatus().getOrderIndex()),
                 task.getPriority(),
                 task.getDueDate(),
-                task.getEstimatedHours(),
                 task.getActualHours(),
-                new UserSimpleResponse(
-                        task.getAssignedTo().getId(),
-                        task.getAssignedTo().getUsername(),
-                        task.getAssignedTo().getEmail()
-                ),
+                userMapper.toSimpleResponse(task.getCreatedBy()),
                 task.getCreatedAt(),
                 task.getUpdatedAt()
         );
     }
 
-    public Task toEntity(TaskRequest request, User user, PriorityStatus priorityStatus, Project project, TaskStatus taskStatus, User member){
+    public Task toEntity(TaskRequest request, User user, PriorityStatus priorityStatus, Project project, TaskStatus taskStatus){
         Task taskToSave = new Task();
         taskToSave.setTitle(request.title());
         taskToSave.setDescription(request.description());
         taskToSave.setProject(project);
         taskToSave.setStatus(taskStatus);
-        taskToSave.setAssignedTo(member);
+        taskToSave.setAssignedTo(null);
         taskToSave.setPriority(priorityStatus);
-        taskToSave.setDueDate(request.dueDate());
-        taskToSave.setEstimatedHours(request.estimatedHours());
+        taskToSave.setDueDate(null);
         taskToSave.setCreatedBy(user);
+        taskToSave.setActualHours(0.0);
         return taskToSave;
     }
 
@@ -84,11 +72,13 @@ public class TaskMapper {
                         task.getStatus().getOrderIndex()),
                 task.getDueDate(),
                 task.isOverdue(),
+                task.getAssignedTo() != null?
                 new UserSimpleResponse(
                         task.getAssignedTo().getId(),
-                        task.getAssignedTo().getUsername(),
-                        task.getAssignedTo().getEmail()
-                )
+                        task.getAssignedTo().getUser().getUsername(),
+                        task.getAssignedTo().getUser().getEmail(),
+                        task.getAssignedTo().getUser().getAvatar_url()
+                ):null
         );
     }
 }

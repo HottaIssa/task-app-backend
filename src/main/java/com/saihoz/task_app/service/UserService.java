@@ -9,6 +9,8 @@ import com.saihoz.task_app.mapper.UserMapper;
 import com.saihoz.task_app.model.Role;
 import com.saihoz.task_app.model.User;
 import com.saihoz.task_app.repo.TaskRepo;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -51,4 +53,7 @@ public class UserService {
         return taskRepo.findByAssignedTo(user).stream().map(taskMapper::toResponse).toList();
     }
 
+    public UserResponse getUserByUsername(String username) {
+        return userMapper.toResponse(repo.findByUsername(username));
+    }
 }

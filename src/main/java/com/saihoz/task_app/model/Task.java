@@ -2,7 +2,6 @@ package com.saihoz.task_app.model;
 
 import jakarta.persistence.*;
 import jakarta.persistence.CascadeType;
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.*;
@@ -39,7 +38,7 @@ public class Task {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "assigned_to")
-    private User assignedTo;
+    private ProjectMember assignedTo;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "status_id", nullable = false)
@@ -53,14 +52,8 @@ public class Task {
     @Column(name = "due_date")
     private LocalDateTime dueDate;
 
-    @Min(value = 0, message = "The estimated hours cannot be negatives")
-    @Column(name = "estimated_hours")
-    private Double estimatedHours;
-
-    @Min(value = 0, message = "The actual hours cannot be negatives")
     @Column(name = "actual_hours")
-    @Builder.Default
-    private Double actualHours = 0.0;
+    private Double actualHours;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by", nullable = false)
@@ -75,7 +68,6 @@ public class Task {
     private LocalDateTime updatedAt;
 
     @OneToMany(mappedBy = "task", cascade = CascadeType.REMOVE, orphanRemoval = true)
-    @Builder.Default
     private List<Comment> comments = new ArrayList<>();
 
     @PrePersist
@@ -91,6 +83,10 @@ public class Task {
     public boolean isOverdue() {
         if (dueDate == null) return false;
         return LocalDateTime.now().isAfter(dueDate) && !isCompleted();
+    }
+
+    public boolean canUpdateStatus(ProjectMember user){
+        return assignedTo == user;
     }
 
     public boolean isCompleted() {

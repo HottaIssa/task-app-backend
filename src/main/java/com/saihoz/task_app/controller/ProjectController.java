@@ -8,6 +8,7 @@ import com.saihoz.task_app.dto.TaskDTO.TaskListResponse;
 import com.saihoz.task_app.dto.TaskDTO.TaskResponse;
 import com.saihoz.task_app.dto.TaskDTO.TaskStatusResponse;
 import com.saihoz.task_app.model.Project;
+import com.saihoz.task_app.model.RoleMember;
 import com.saihoz.task_app.service.ProjectService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,10 +71,19 @@ public class ProjectController {
         return ResponseEntity.ok().body(service.addMemberOnProject(projectId, member, user.getUsername()));
     }
 
-    @DeleteMapping("/{projectId}/members/{memberId}")
-    public ResponseEntity<String> deleteMemberOnProject(@PathVariable UUID projectId, @PathVariable UUID memberId, @AuthenticationPrincipal UserDetails user){
-        service.deleteMemberOnProject(projectId, memberId, user.getUsername());
-        return ResponseEntity.ok().body("Member deleted successfully");
+    @PatchMapping("/{projectId}/members/{memberId}/role")
+    public ResponseEntity<ProjectMemberResponse> patchRoleMember(@PathVariable UUID projectId, @PathVariable UUID memberId, @RequestBody PatchRoleMemberRequest role, @AuthenticationPrincipal UserDetails user){
+        return ResponseEntity.ok().body(service.patchRoleMember(projectId, memberId, role, user.getUsername()));
+    }
+
+    @PatchMapping("/{projectId}/members/{memberId}/deactivate")
+    public ResponseEntity<ProjectMemberResponse> patchDeactivateMember(@PathVariable UUID projectId, @PathVariable UUID memberId, @AuthenticationPrincipal UserDetails user){
+        return ResponseEntity.ok().body(service.patchDeactivateMember(projectId, memberId, user.getUsername()));
+    }
+
+    @PatchMapping("/{projectId}/members/{memberId}/active")
+    public ResponseEntity<ProjectMemberResponse> patchActivateMember(@PathVariable UUID projectId, @PathVariable UUID memberId, @AuthenticationPrincipal UserDetails user){
+        return ResponseEntity.ok().body(service.patchActivateMember(projectId, memberId, user.getUsername()));
     }
 
     @GetMapping("/{projectId}/tasks")

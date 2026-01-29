@@ -1,36 +1,36 @@
 package com.saihoz.task_app.mapper;
 
 import com.saihoz.task_app.dto.ProjectDTO.ProjectMemberResponse;
-import com.saihoz.task_app.dto.UserDTO.UserResponse;
 import com.saihoz.task_app.model.*;
 import org.springframework.stereotype.Component;
 
 @Component
 public class ProjectMemberMapper {
 
+    private final UserMapper userMapper;
+
+    public ProjectMemberMapper(UserMapper userMapper) {
+        this.userMapper = userMapper;
+    }
+
     public ProjectMemberResponse toResponse(ProjectMember projectMember){
+        if(projectMember == null) return null;
         return new ProjectMemberResponse(
                 projectMember.getId(),
-                new UserResponse(
-                        projectMember.getUser().getId(),
-                        projectMember.getUser().getUsername(),
-                        projectMember.getUser().getEmail(),
-                        projectMember.getUser().getFirstName(),
-                        projectMember.getUser().getLastName(),
-                        projectMember.getUser().getRole().getDisplayName(),
-                        projectMember.getUser().getAvatar_url()
-                ),
+                userMapper.toResponse(projectMember.getUser()),
                 projectMember.getRoleMember().getDisplayName(),
-                projectMember.getJoinedAt()
+                projectMember.getJoinedAt(),
+                projectMember.getIsActive()
         );
 
     }
 
-    public ProjectMember toEntity(User user, Project project, RoleMember role){
+    public ProjectMember toEntity(User member, Project project, RoleMember role, User user){
         ProjectMember projectMember = new ProjectMember();
-        projectMember.setUser(user);
+        projectMember.setUser(member);
         projectMember.setRoleMember(role);
         projectMember.setProject(project);
+        projectMember.setInvitedBy(user);
         return projectMember;
     }
 }
