@@ -28,8 +28,8 @@ public class Comment {
     private Task task;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    @JoinColumn(name = "member_id", nullable = false)
+    private ProjectMember member;
 
     @Size(max = 200, message = "The content cannot exceed 200 characters")
     @Column(nullable = false)
@@ -47,19 +47,15 @@ public class Comment {
     @Builder.Default
     private Boolean isEdited = false;
 
-    public boolean belongsToUser(User user) {
-        if (user == null || this.user == null) {
+    public boolean belongsToUser(ProjectMember user) {
+        if (user == null || this.member == null) {
             return false;
         }
-        return this.user.equals(user);
+        return this.member.equals(user);
     }
 
     public boolean wasEdited() {
         return isEdited != null && isEdited;
-    }
-
-    public void markAsEdited() {
-        this.isEdited = true;
     }
 
     public String getPreview() {
@@ -67,14 +63,14 @@ public class Comment {
         return content.length() > 100 ? content.substring(0, 100) + "..." : content;
     }
 
-    public boolean canBeEditedBy(User user) {
+    public boolean canBeEditedBy(ProjectMember user) {
         if (user == null) return false;
 
         // Solo el autor puede editar su comentario
-        return belongsToUser(user);
+        return belongsToUser(member);
     }
 
-    public boolean canBeDeletedBy(User user) {
+    public boolean canBeDeletedBy(ProjectMember user) {
         if (user == null) return false;
 
         // El autor puede eliminar
@@ -83,11 +79,11 @@ public class Comment {
         }
 
         // El admin del proyecto puede eliminar
-        return task != null && task.getProject().isAdmin(user);
+        return task != null && user.hasAdminPermissions();
     }
 
     public String getTimeAgo() {
-        if (createdAt == null) return "Unknown";
+        if (createdAt == null) return "Just now";
 
         LocalDateTime now = LocalDateTime.now();
         long minutes = java.time.Duration.between(createdAt, now).toMinutes();

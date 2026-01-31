@@ -4,15 +4,14 @@ import com.saihoz.task_app.dto.KanbanDTO.KanbanBoardResponse;
 import com.saihoz.task_app.dto.KanbanDTO.KanbanColumnResponse;
 import com.saihoz.task_app.dto.KanbanDTO.TaskCardResponse;
 import com.saihoz.task_app.dto.ProjectDTO.*;
-import com.saihoz.task_app.dto.TaskDTO.TaskListResponse;
-import com.saihoz.task_app.dto.TaskDTO.TaskResponse;
-import com.saihoz.task_app.dto.TaskDTO.TaskStatusResponse;
+import com.saihoz.task_app.dto.ProjectMemberDTO.PatchRoleMemberRequest;
+import com.saihoz.task_app.dto.ProjectMemberDTO.ProjectMemberRequest;
+import com.saihoz.task_app.dto.ProjectMemberDTO.ProjectMemberResponse;
 import com.saihoz.task_app.mapper.ProjectMapper;
 import com.saihoz.task_app.mapper.ProjectMemberMapper;
 import com.saihoz.task_app.mapper.TaskMapper;
 import com.saihoz.task_app.model.*;
 import com.saihoz.task_app.repo.*;
-import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -166,13 +165,14 @@ public class ProjectService {
     public ProjectMemberResponse addMemberOnProject(UUID id, ProjectMemberRequest member, String username){
         User user = userRepo.findByUsername(username);
         Project project = projectRepo.findByIdAndMember(id, user);
-        User userMember = userRepo.findById(member.userId()).orElse(null);
+        User userMember = userRepo.findById(member.userId()).orElseThrow(() -> new RuntimeException("User not found"));
+        if(project.isMember(userMember)) throw new RuntimeException("This User is already a member");
         ProjectMember projectMember = projectMemberMapper.toEntity(userMember, project, member.role(), user);
         memberRepo.save(projectMember);
         return projectMemberMapper.toResponse(projectMember);
     }
 
-    public ProjectMemberResponse patchRoleMember(UUID projectId,UUID memberId , PatchRoleMemberRequest request, String username) {
+    public ProjectMemberResponse patchRoleMember(UUID projectId, UUID memberId , PatchRoleMemberRequest request, String username) {
         User user = userRepo.findByUsername(username);
         Project project = projectRepo.findById(projectId).orElse(null);
         if(!project.isAdmin(user)) throw new RuntimeException("No tienes el nivel requerido para realizar esta acción");

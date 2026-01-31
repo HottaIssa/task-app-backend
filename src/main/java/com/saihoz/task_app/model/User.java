@@ -69,14 +69,13 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<ProjectMember> projectMembers;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
-    private List<Comment> comments;
-
     @PrePersist
     public void prePersist() {
         this.isActive = true;
     }
 
-
+    public String getFullName(){
+        return firstName + " " + lastName;
+    }
 
 }

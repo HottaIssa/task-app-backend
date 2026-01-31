@@ -1,10 +1,11 @@
 package com.saihoz.task_app.service;
 
+import com.saihoz.task_app.dto.CommentDTO.CommentRequest;
+import com.saihoz.task_app.dto.CommentDTO.CommentResponse;
 import com.saihoz.task_app.dto.KanbanDTO.TaskCardResponse;
-import com.saihoz.task_app.dto.TaskDTO.PatchTaskStatusRequest;
-import com.saihoz.task_app.dto.TaskDTO.TaskRequest;
-import com.saihoz.task_app.dto.TaskDTO.TaskResponse;
-import com.saihoz.task_app.dto.TaskDTO.TaskUpdateRequest;
+import com.saihoz.task_app.dto.TaskDTO.TaskSimpleResponse;
+import com.saihoz.task_app.dto.TaskDTO.*;
+import com.saihoz.task_app.mapper.CommentMapper;
 import com.saihoz.task_app.mapper.TaskMapper;
 import com.saihoz.task_app.model.*;
 import com.saihoz.task_app.repo.*;
@@ -13,7 +14,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.web.PagedModel;
-import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -36,9 +36,11 @@ public class TaskService {
 
     private final TaskMapper taskMapper;
 
+    private final CommentMapper commentMapper;
+
     private final ProjectRepo projectRepo;
 
-    public TaskService(TaskRepo taskRepo, UserRepo userRepo, CommentRepo commentRepo, TaskStatusRepo taskStatusRepo, TaskMapper taskMapper, ProjectRepo projectRepo, MemberRepo memberRepo) {
+    public TaskService(TaskRepo taskRepo, UserRepo userRepo, CommentRepo commentRepo, TaskStatusRepo taskStatusRepo, TaskMapper taskMapper, ProjectRepo projectRepo, MemberRepo memberRepo, CommentMapper commentMapper) {
         this.taskRepo = taskRepo;
         this.userRepo = userRepo;
         this.commentRepo = commentRepo;
@@ -46,25 +48,27 @@ public class TaskService {
         this.taskMapper = taskMapper;
         this.projectRepo = projectRepo;
         this.memberRepo = memberRepo;
+        this.commentMapper = commentMapper;
     }
 
-    public PagedModel<TaskCardResponse> findTasksWithFilter(Long projectId, String status, String priority, String search,
+    public PagedModel<TaskSimpleResponse> findTasksWithFilter(Long projectId, String status, String priority, String search,
                                                             LocalDateTime dueFrom, LocalDateTime dueTo, Boolean isOverdue, Boolean isAssignedToMe, Boolean isCreatedByMe, String username, Pageable pageable) {
         User user = userRepo.findByUsername(username);
+        ProjectMember member= memberRepo.findByUser(user);
 
         Specification<Task> spec = Specification
-                .where(TaskSpecification.isOwnerOrAssignee(user))
+                .where(TaskSpecification.isOwnerOrAssignee(user, member))
                 .and(TaskSpecification.projectId(projectId))
                 .and(TaskSpecification.status(taskStatusRepo.findByName(status)))
                 .and(TaskSpecification.priority(priority))
                 .and(TaskSpecification.search(search))
                 .and(TaskSpecification.dueBetween(dueFrom, dueTo))
                 .and(TaskSpecification.isOverdue(isOverdue))
-                .and(TaskSpecification.isAssignedToMe(isAssignedToMe, user))
+                .and(TaskSpecification.isAssignedToMe(isAssignedToMe, member))
                 .and(TaskSpecification.isCreatedByMe(isCreatedByMe, user));
 
-        Page<Task> tasks = taskRepo.findAll(spec, pageable);
-        Page<TaskCardResponse> responsePage = tasks.map(taskMapper::toTaskCardResponse);
+        Page<Task> tasks = taskRepo.findAll(spec,pageable);
+        Page<TaskSimpleResponse> responsePage = tasks.map(taskMapper::toTaskSimpleResponse);
         return new PagedModel<>(responsePage);
     }
 
@@ -76,7 +80,7 @@ public class TaskService {
     }
 
     @Transactional
-    public TaskResponse addTask(TaskRequest request, String username) {
+    public TaskCardResponse addTask(TaskRequest request, String username) {
         User currentUser = userRepo.findByUsername(username);
 
         Project project = projectRepo.findById(request.projectId()).orElse(null);
@@ -86,12 +90,10 @@ public class TaskService {
         Task task = taskMapper.toEntity(request, currentUser, request.priority() != null ? request.priority() : PriorityStatus.MEDIUM, project, status);
 
         Task savedTask = taskRepo.save(task);
-        return taskMapper.toResponse(savedTask);
+        return taskMapper.toTaskCardResponse(savedTask);
     }
 
-    public TaskResponse updateTask(UUID taskId, TaskUpdateRequest request, String username) {
-        User user = userRepo.findByUsername(username);
-
+    public TaskCardResponse updateTask(UUID taskId, TaskUpdateRequest request, String username) {
         TaskStatus newStatus = taskStatusRepo.findByName(request.status());
 
         Task task = taskRepo.findById(taskId).orElse(null);
@@ -115,10 +117,10 @@ public class TaskService {
         // TODO: Enviar WebSocket broadcast
         // TODO: Registrar cambios en activity log
 
-        return taskMapper.toResponse(updatedTask);
+        return taskMapper.toTaskCardResponse(updatedTask);
     }
 
-    public TaskResponse patchTaskStatus(UUID id, String username) {
+    public TaskCardResponse patchTaskStatus(UUID id, String username) {
         User user = userRepo.findByUsername(username);
         Task taskToUpdate = taskRepo.findById(id).orElse(null);
         ProjectMember member = memberRepo.findByUserAndProject(user, taskToUpdate.getProject());
@@ -126,7 +128,7 @@ public class TaskService {
         if(taskToUpdate.isCompleted()) throw new RuntimeException("No puedes editar");
         taskToUpdate.setStatus(taskStatusRepo.findById(taskToUpdate.getStatus().getId() + 1).orElse(null));
         taskRepo.save(taskToUpdate);
-        return taskMapper.toResponse(taskToUpdate);
+        return taskMapper.toTaskCardResponse(taskToUpdate);
     }
 
     public void deleteTask(UUID id, String username) {
@@ -135,17 +137,35 @@ public class TaskService {
         taskRepo.delete(taskToDelete);
     }
 
-    public List<Comment> getCommentsOnTask(UUID id) {
-        Task task = taskRepo.findById(id).orElse(null);
-        return task.getComments();
+    public List<CommentResponse> getCommentsOnTask(UUID id) {
+        List<Comment> comments = commentRepo.findByTaskId(id);
+        return commentMapper.toListResponse(comments);
     }
 
-    public Comment addCommentOnTask(UUID id, Comment comment, String username) {
+    public CommentResponse addCommentOnTask(UUID id, CommentRequest comment, String username) {
         User user = userRepo.findByUsername(username);
         Task task = taskRepo.findById(id).orElse(null);
-        comment.setTask(task);
-        comment.setUser(user);
-        return commentRepo.save(comment);
+        ProjectMember member = memberRepo.findByUserAndProject(user, task.getProject());
+        return commentMapper.toResponse(commentRepo.save(commentMapper.toEntity(comment, member, task)));
+    }
+
+    public CommentResponse updateComment(UUID taskId, UUID commentId, CommentRequest request, String username) {
+        User user = userRepo.findByUsername(username);
+        Task task = taskRepo.findById(taskId).orElse(null);
+        ProjectMember member = memberRepo.findByUserAndProject(user, task.getProject());
+        Comment comment = commentRepo.findById(commentId).orElse(null);
+        if(!(member == comment.getMember())) throw new RuntimeException("No tienes los permisos necesarios");
+        comment.setContent(request.content());
+        return commentMapper.toResponse(commentRepo.save(comment));
+    }
+
+    public void deleteComment(UUID taskId, UUID commentId, String username){
+        User user = userRepo.findByUsername(username);
+        Task task = taskRepo.findById(taskId).orElse(null);
+        ProjectMember member = memberRepo.findByUserAndProject(user, task.getProject());
+        Comment comment = commentRepo.findById(commentId).orElse(null);
+        if(!member.hasAdminPermissions() || !(member == comment.getMember())) throw new RuntimeException("No tienes los permisos necesarios");
+        commentRepo.delete(comment);
     }
 
 }

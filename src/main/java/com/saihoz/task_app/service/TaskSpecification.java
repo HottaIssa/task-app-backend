@@ -1,5 +1,6 @@
 package com.saihoz.task_app.service;
 
+import com.saihoz.task_app.model.ProjectMember;
 import com.saihoz.task_app.model.Task;
 import com.saihoz.task_app.model.TaskStatus;
 import com.saihoz.task_app.model.User;
@@ -9,10 +10,10 @@ import java.time.LocalDateTime;
 
 public class TaskSpecification {
 
-    public static Specification<Task> isOwnerOrAssignee(User user) {
+    public static Specification<Task> isOwnerOrAssignee(User user, ProjectMember member) {
         return (root, query, cb) -> cb.or(
                 cb.equal(root.get("createdBy"), user),
-                cb.equal(root.get("assignedTo").get("user"), user)
+                cb.equal(root.get("assignedTo"), member)
         );
     }
 
@@ -73,11 +74,11 @@ public class TaskSpecification {
         };
     }
 
-    public static Specification<Task> isAssignedToMe(Boolean isAssignedTo, User user) {
+    public static Specification<Task> isAssignedToMe(Boolean isAssignedTo, ProjectMember member) {
         return (root, query, cb) -> {
             if (isAssignedTo == null || isAssignedTo == false) return null;
 
-            return cb.equal(root.get("assignedTo").get("user"), user);
+            return cb.equal(root.get("assignedTo"), member);
         };
     }
 

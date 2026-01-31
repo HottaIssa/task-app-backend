@@ -1,6 +1,6 @@
 package com.saihoz.task_app.mapper;
 
-import com.saihoz.task_app.dto.ProjectDTO.ProjectMemberResponse;
+import com.saihoz.task_app.dto.ProjectMemberDTO.ProjectMemberResponse;
 import com.saihoz.task_app.model.*;
 import org.springframework.stereotype.Component;
 
@@ -17,7 +17,7 @@ public class ProjectMemberMapper {
         if(projectMember == null) return null;
         return new ProjectMemberResponse(
                 projectMember.getId(),
-                userMapper.toResponse(projectMember.getUser()),
+                userMapper.toSimpleResponse(projectMember.getUser()),
                 projectMember.getRoleMember().getDisplayName(),
                 projectMember.getJoinedAt(),
                 projectMember.getIsActive()

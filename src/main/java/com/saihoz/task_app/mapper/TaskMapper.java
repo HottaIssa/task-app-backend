@@ -1,12 +1,10 @@
 package com.saihoz.task_app.mapper;
 
 import com.saihoz.task_app.dto.KanbanDTO.TaskCardResponse;
-import com.saihoz.task_app.dto.ProjectDTO.ProjectMemberResponse;
-import com.saihoz.task_app.dto.TaskDTO.TaskListResponse;
 import com.saihoz.task_app.dto.TaskDTO.TaskRequest;
 import com.saihoz.task_app.dto.TaskDTO.TaskResponse;
+import com.saihoz.task_app.dto.TaskDTO.TaskSimpleResponse;
 import com.saihoz.task_app.dto.TaskDTO.TaskStatusResponse;
-import com.saihoz.task_app.dto.UserDTO.UserResponse;
 import com.saihoz.task_app.dto.UserDTO.UserSimpleResponse;
 import com.saihoz.task_app.model.*;
 import org.springframework.stereotype.Component;
@@ -23,7 +21,7 @@ public class TaskMapper {
         this.userMapper = userMapper;
     }
 
-    public TaskResponse toResponse(Task task){
+    public TaskResponse toResponse(Task task) {
         return new TaskResponse(
                 task.getId(),
                 task.getTitle(),
@@ -36,8 +34,9 @@ public class TaskMapper {
                         task.getStatus().getName(),
                         task.getStatus().getColor(),
                         task.getStatus().getOrderIndex()),
-                task.getPriority(),
+                task.getPriority().getDisplayName(),
                 task.getDueDate(),
+                task.isOverdue(),
                 task.getActualHours(),
                 userMapper.toSimpleResponse(task.getCreatedBy()),
                 task.getCreatedAt(),
@@ -45,7 +44,7 @@ public class TaskMapper {
         );
     }
 
-    public Task toEntity(TaskRequest request, User user, PriorityStatus priorityStatus, Project project, TaskStatus taskStatus){
+    public Task toEntity(TaskRequest request, User user, PriorityStatus priorityStatus, Project project, TaskStatus taskStatus) {
         Task taskToSave = new Task();
         taskToSave.setTitle(request.title());
         taskToSave.setDescription(request.description());
@@ -59,8 +58,20 @@ public class TaskMapper {
         return taskToSave;
     }
 
-    public TaskCardResponse toTaskCardResponse(Task task){
+    public TaskCardResponse toTaskCardResponse(Task task) {
         return new TaskCardResponse(
+                task.getId(),
+                task.getTitle(),
+                task.getPriority().getDisplayName(),
+                task.getDueDate(),
+                task.isOverdue(),
+                task.getAssignedTo() != null ?
+                        userMapper.toSimpleResponse(task.getAssignedTo().getUser()) : null
+        );
+    }
+
+    public TaskSimpleResponse toTaskSimpleResponse(Task task) {
+        return new TaskSimpleResponse(
                 task.getId(),
                 task.getTitle(),
                 task.getDescription(),
@@ -72,13 +83,10 @@ public class TaskMapper {
                         task.getStatus().getOrderIndex()),
                 task.getDueDate(),
                 task.isOverdue(),
-                task.getAssignedTo() != null?
-                new UserSimpleResponse(
-                        task.getAssignedTo().getId(),
-                        task.getAssignedTo().getUser().getUsername(),
-                        task.getAssignedTo().getUser().getEmail(),
-                        task.getAssignedTo().getUser().getAvatar_url()
-                ):null
+                task.getAssignedTo() != null ?
+                        userMapper.toSimpleResponse(task.getAssignedTo().getUser())
+                        :
+                        null
         );
     }
 }

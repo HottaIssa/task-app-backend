@@ -4,6 +4,7 @@ package com.saihoz.task_app.service;
 import com.saihoz.task_app.dto.RegisterResponse;
 import com.saihoz.task_app.dto.TaskDTO.TaskResponse;
 import com.saihoz.task_app.dto.UserDTO.UserResponse;
+import com.saihoz.task_app.dto.UserDTO.UserSimpleResponse;
 import com.saihoz.task_app.mapper.TaskMapper;
 import com.saihoz.task_app.mapper.UserMapper;
 import com.saihoz.task_app.model.Role;
@@ -31,16 +32,13 @@ public class UserService {
     @Autowired
     private UserMapper userMapper;
 
-    @Autowired
-    private TaskMapper taskMapper;
-
     private BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
 
-    public RegisterResponse saveUser(User user) {
+    public UserResponse saveUser(User user) {
         user.setPassword(encoder.encode(user.getPassword()));
         user.setRole(Role.USER);
         User savedUser = repo.save(user);
-        return new RegisterResponse(savedUser.getId(), savedUser.getUsername(), savedUser.getEmail(), savedUser.getPassword(), savedUser.getFirstName(), savedUser.getLastName(), savedUser.getRole().getDisplayName(), savedUser.getAvatar_url());
+        return userMapper.toResponse(savedUser);
     }
 
     public UserResponse getUserById(UUID id) {
@@ -48,12 +46,7 @@ public class UserService {
         return userMapper.toResponse(user);
     }
 
-    public List<TaskResponse> getTasksByUser(UUID id) {
-        User user = repo.findById(id).orElse(null);
-        return taskRepo.findByAssignedTo(user).stream().map(taskMapper::toResponse).toList();
-    }
-
-    public UserResponse getUserByUsername(String username) {
-        return userMapper.toResponse(repo.findByUsername(username));
+    public UserSimpleResponse getUserByUsername(String username) {
+        return userMapper.toSimpleResponse(repo.findByUsername(username));
     }
 }

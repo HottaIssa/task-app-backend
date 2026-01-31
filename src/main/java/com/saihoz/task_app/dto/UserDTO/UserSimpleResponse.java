@@ -6,6 +6,7 @@ public record UserSimpleResponse(
         UUID id,
         String username,
         String email,
+        String fullName,
         String avatar_url
 ) {
 }

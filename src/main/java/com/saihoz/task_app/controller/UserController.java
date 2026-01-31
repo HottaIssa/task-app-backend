@@ -23,9 +23,4 @@ public class UserController {
         return ResponseEntity.ok().body(service.getUserById(id));
     }
 
-    @GetMapping("/{id}/tasks")
-    public ResponseEntity<List<TaskResponse>> getTasksByUser(@PathVariable UUID id){
-        return ResponseEntity.ok().body(service.getTasksByUser(id));
-    }
-
 }

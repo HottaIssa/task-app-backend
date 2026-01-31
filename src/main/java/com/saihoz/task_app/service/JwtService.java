@@ -1,5 +1,6 @@
 package com.saihoz.task_app.service;
 
+import com.saihoz.task_app.model.UserPrincipal;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
@@ -21,13 +22,15 @@ public class JwtService {
     @Value("${jwt.secret}")
     private String secretKey;
 
-    public String generateToken(String username){
+    public String generateToken(UserPrincipal user){
 
         Map<String, Object> claims = new HashMap<>();
 
         return Jwts.builder()
                 .claims(claims)
-                .subject(username)
+                .subject(user.getId().toString())
+                .claim("username", user.getUsername())
+                .claim("role", user.getRole())
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60))
                 .signWith(getKey())
@@ -39,8 +42,8 @@ public class JwtService {
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
-    public String extractUsername(String token) {
-        return extractClaim(token, Claims::getSubject);
+    public Long extractUserId(String token) {
+        return Long.parseLong(extractClaim(token, Claims::getSubject));
     }
 
     private <T> T extractClaim(String token, Function<Claims, T> claimResolver){
@@ -50,6 +53,10 @@ public class JwtService {
 
     private Claims extractAllClaims(String token){
         return Jwts.parser().verifyWith(getKey()).build().parseSignedClaims(token).getPayload();
+    }
+
+    public String extractUsername(String token) {
+        return extractClaim(token, claims -> claims.get("username", String.class));
     }
 
     public boolean validateToken(String token, UserDetails userDetails) {

@@ -1,14 +1,11 @@
 package com.saihoz.task_app.controller;
 
 import com.saihoz.task_app.dto.KanbanDTO.KanbanBoardResponse;
-import com.saihoz.task_app.dto.KanbanDTO.KanbanColumnResponse;
 import com.saihoz.task_app.dto.ProjectDTO.*;
-import com.saihoz.task_app.dto.TaskDTO.PatchTaskStatusRequest;
-import com.saihoz.task_app.dto.TaskDTO.TaskListResponse;
-import com.saihoz.task_app.dto.TaskDTO.TaskResponse;
-import com.saihoz.task_app.dto.TaskDTO.TaskStatusResponse;
-import com.saihoz.task_app.model.Project;
-import com.saihoz.task_app.model.RoleMember;
+import com.saihoz.task_app.dto.ProjectMemberDTO.PatchRoleMemberRequest;
+import com.saihoz.task_app.dto.ProjectMemberDTO.ProjectMemberRequest;
+import com.saihoz.task_app.dto.ProjectMemberDTO.ProjectMemberResponse;
+import com.saihoz.task_app.model.User;
 import com.saihoz.task_app.service.ProjectService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +16,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 

@@ -7,6 +7,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.UUID;
 
 public class UserPrincipal implements UserDetails {
 
@@ -30,6 +31,14 @@ public class UserPrincipal implements UserDetails {
     @Override
     public String getUsername() {
         return user.getUsername();
+    }
+
+    public UUID getId() {
+        return user.getId();
+    }
+
+    public Role getRole() {
+        return user.getRole(); // depende cómo lo tengas en tu entidad
     }
 
     @Override
