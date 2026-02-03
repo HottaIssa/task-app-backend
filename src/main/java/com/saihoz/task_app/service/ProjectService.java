@@ -156,7 +156,7 @@ public class ProjectService {
     public List<ProjectMemberResponse> getMembersOnProject(UUID id, String username){
         User user = userRepo.findByUsername(username);
         Project project = projectRepo.findByIdAndMember(id, user);
-        List<ProjectMember> members = memberRepo.findByProject(project);
+        List<ProjectMember> members = memberRepo.findByProjectOrderByJoinedAtAsc(project);
         return members.stream()
                 .map(projectMemberMapper::toResponse)
                 .collect(Collectors.toList());

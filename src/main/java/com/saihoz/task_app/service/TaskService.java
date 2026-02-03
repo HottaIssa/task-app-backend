@@ -124,9 +124,56 @@ public class TaskService {
         User user = userRepo.findByUsername(username);
         Task taskToUpdate = taskRepo.findById(id).orElse(null);
         ProjectMember member = memberRepo.findByUserAndProject(user, taskToUpdate.getProject());
-        if(!taskToUpdate.canUpdateStatus(member) || !member.hasAdminPermissions()) throw new RuntimeException("No puedes editar");
+        if(!(taskToUpdate.canUpdateStatus(member) || member.hasAdminPermissions())) throw new RuntimeException("No puedes editar");
         if(taskToUpdate.isCompleted()) throw new RuntimeException("No puedes editar");
         taskToUpdate.setStatus(taskStatusRepo.findById(taskToUpdate.getStatus().getId() + 1).orElse(null));
+        taskRepo.save(taskToUpdate);
+        return taskMapper.toTaskCardResponse(taskToUpdate);
+    }
+
+    public TaskCardResponse patchTaskMember(UUID id, patchTaskMemberRequest request, String username) {
+        User user = userRepo.findByUsername(username);
+        Task taskToUpdate = taskRepo.findById(id).orElse(null);
+        if(!(taskToUpdate.getCreatedBy() == user)) throw new RuntimeException("No puedes editar");
+        ProjectMember assignedTo = memberRepo.findById(request.memberId()).orElse(null);
+        if(!(taskToUpdate.getProject().isMember(assignedTo.getUser()))) throw new RuntimeException("No puedes editar");
+        taskToUpdate.setAssignedTo(assignedTo);
+        taskRepo.save(taskToUpdate);
+        return taskMapper.toTaskCardResponse(taskToUpdate);
+    }
+
+    public TaskCardResponse patchTaskTitle(UUID id, patchTaskTitleRequest request, String username) {
+        User user = userRepo.findByUsername(username);
+        Task taskToUpdate = taskRepo.findById(id).orElse(null);
+        if(!(taskToUpdate.getCreatedBy() == user)) throw new RuntimeException("No puedes editar");
+        taskToUpdate.setTitle(request.title());
+        taskRepo.save(taskToUpdate);
+        return taskMapper.toTaskCardResponse(taskToUpdate);
+    }
+
+    public TaskCardResponse patchTaskDescription(UUID id, patchTaskDescriptionRequest request, String username) {
+        User user = userRepo.findByUsername(username);
+        Task taskToUpdate = taskRepo.findById(id).orElse(null);
+        if(!(taskToUpdate.getCreatedBy() == user)) throw new RuntimeException("No puedes editar");
+        taskToUpdate.setDescription(request.description());
+        taskRepo.save(taskToUpdate);
+        return taskMapper.toTaskCardResponse(taskToUpdate);
+    }
+
+    public TaskCardResponse patchTaskPriority(UUID id, patchTaskPriorityRequest request, String username) {
+        User user = userRepo.findByUsername(username);
+        Task taskToUpdate = taskRepo.findById(id).orElse(null);
+        if(!(taskToUpdate.getCreatedBy() == user)) throw new RuntimeException("No puedes editar");
+        taskToUpdate.setPriority(request.priority());
+        taskRepo.save(taskToUpdate);
+        return taskMapper.toTaskCardResponse(taskToUpdate);
+    }
+
+    public TaskCardResponse patchTaskDueDate(UUID id, patchTaskDueDateRequest request, String username) {
+        User user = userRepo.findByUsername(username);
+        Task taskToUpdate = taskRepo.findById(id).orElse(null);
+        if(!(taskToUpdate.getCreatedBy() == user)) throw new RuntimeException("No puedes editar");
+        taskToUpdate.setDueDate(request.dueDate());
         taskRepo.save(taskToUpdate);
         return taskMapper.toTaskCardResponse(taskToUpdate);
     }

@@ -1,9 +1,7 @@
 package com.saihoz.task_app.dto.KanbanDTO;
 
 
-import com.saihoz.task_app.dto.TaskDTO.TaskStatusResponse;
-import com.saihoz.task_app.dto.UserDTO.UserSimpleResponse;
-import com.saihoz.task_app.model.TaskStatus;
+import com.saihoz.task_app.dto.ProjectMemberDTO.ProjectMemberSimpleResponse;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -14,6 +12,6 @@ public record TaskCardResponse(
         String priority,
         LocalDateTime dueDate,
         Boolean isOverdue,
-        UserSimpleResponse assignedTo
+        ProjectMemberSimpleResponse assignedTo
 ) {
 }

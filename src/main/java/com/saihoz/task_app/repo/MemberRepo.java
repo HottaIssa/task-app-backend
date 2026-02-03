@@ -11,7 +11,7 @@ import java.util.UUID;
 
 @Repository
 public interface MemberRepo extends JpaRepository<ProjectMember, UUID> {
-    List<ProjectMember> findByProject(Project project);
+    List<ProjectMember> findByProjectOrderByJoinedAtAsc(Project project);
     ProjectMember findByUserAndProject(User user, Project project);
     ProjectMember findByUser(User user);
 }

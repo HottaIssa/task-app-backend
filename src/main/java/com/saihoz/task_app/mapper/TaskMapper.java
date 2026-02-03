@@ -28,7 +28,7 @@ public class TaskMapper {
                 task.getDescription(),
                 task.getProject().getId(),
                 task.getProject().getName(),
-                projectMemberMapper.toResponse(task.getAssignedTo()),
+                task.getAssignedTo() != null ? projectMemberMapper.toSimpleResponse(task.getAssignedTo()) : null,
                 new TaskStatusResponse(
                         task.getStatus().getId(),
                         task.getStatus().getName(),
@@ -66,7 +66,7 @@ public class TaskMapper {
                 task.getDueDate(),
                 task.isOverdue(),
                 task.getAssignedTo() != null ?
-                        userMapper.toSimpleResponse(task.getAssignedTo().getUser()) : null
+                        projectMemberMapper.toSimpleResponse(task.getAssignedTo()) : null
         );
     }
 

@@ -1,6 +1,7 @@
 package com.saihoz.task_app.mapper;
 
 import com.saihoz.task_app.dto.ProjectMemberDTO.ProjectMemberResponse;
+import com.saihoz.task_app.dto.ProjectMemberDTO.ProjectMemberSimpleResponse;
 import com.saihoz.task_app.model.*;
 import org.springframework.stereotype.Component;
 
@@ -32,5 +33,15 @@ public class ProjectMemberMapper {
         projectMember.setProject(project);
         projectMember.setInvitedBy(user);
         return projectMember;
+    }
+
+    public ProjectMemberSimpleResponse toSimpleResponse(ProjectMember member){
+        return new ProjectMemberSimpleResponse(
+                member.getId(),
+                member.getUser().getUsername(),
+                member.getUser().getFullName(),
+                member.getUser().getEmail(),
+                member.getUser().getAvatar_url()
+        );
     }
 }
