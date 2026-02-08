@@ -5,8 +5,6 @@ import com.saihoz.task_app.dto.CommentDTO.CommentResponse;
 import com.saihoz.task_app.dto.KanbanDTO.TaskCardResponse;
 import com.saihoz.task_app.dto.TaskDTO.TaskSimpleResponse;
 import com.saihoz.task_app.dto.TaskDTO.*;
-import com.saihoz.task_app.model.Comment;
-import com.saihoz.task_app.model.Task;
 import com.saihoz.task_app.service.TaskService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Pageable;
@@ -42,82 +40,81 @@ public class TaskController {
                                                                       @RequestParam(required = false) Boolean isOverdue,
                                                                       @RequestParam(required = false) Boolean isAssignedToMe,
                                                                       @RequestParam(required = false) Boolean isCreatedByMe,
-                                                                      @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable, @AuthenticationPrincipal UserDetails user){
-        String username = user.getUsername();
+                                                                      @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable, @AuthenticationPrincipal UserDetails user) {
         PagedModel<TaskSimpleResponse> tasks = taskService.findTasksWithFilter(projectId, status, priority, search,
-                dueFrom, dueTo, isOverdue, isAssignedToMe, isCreatedByMe,username, pageable);
+                dueFrom, dueTo, isOverdue, isAssignedToMe, isCreatedByMe, user.getUsername(), pageable);
 
         return ResponseEntity.ok(tasks);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<TaskResponse> getTask(@PathVariable UUID id){
+    public ResponseEntity<TaskResponse> getTask(@PathVariable UUID id) {
         return ResponseEntity.ok().body(taskService.getTask(id));
     }
 
     @PostMapping
-    public ResponseEntity<TaskCardResponse> addTaskOnProject(@Valid @RequestBody TaskRequest task, @AuthenticationPrincipal UserDetails user){
+    public ResponseEntity<TaskCardResponse> addTaskOnProject(@Valid @RequestBody TaskRequest task, @AuthenticationPrincipal UserDetails user) {
         return ResponseEntity.ok().body(taskService.addTask(task, user.getUsername()));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<TaskCardResponse> updateTask(@PathVariable UUID id, @Valid @RequestBody TaskUpdateRequest task, @AuthenticationPrincipal UserDetails user){
+    public ResponseEntity<TaskCardResponse> updateTask(@PathVariable UUID id, @Valid @RequestBody TaskUpdateRequest task, @AuthenticationPrincipal UserDetails user) {
         return ResponseEntity.ok().body(taskService.updateTask(id, task, user.getUsername()));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteTask(@PathVariable UUID id, @AuthenticationPrincipal UserDetails user){
+    public ResponseEntity<String> deleteTask(@PathVariable UUID id, @AuthenticationPrincipal UserDetails user) {
         taskService.deleteTask(id, user.getUsername());
-        return ResponseEntity.ok().body("Task deleted successfully");
+        return ResponseEntity.noContent().build();
     }
 
     @PatchMapping("/{id}/status")
-    public ResponseEntity<TaskCardResponse> updateTaskStatus(@PathVariable UUID id, @AuthenticationPrincipal UserDetails user){
+    public ResponseEntity<TaskCardResponse> updateTaskStatus(@PathVariable UUID id, @AuthenticationPrincipal UserDetails user) {
         return ResponseEntity.ok().body(taskService.patchTaskStatus(id, user.getUsername()));
     }
 
     @PatchMapping("/{id}/title")
-    public ResponseEntity<TaskCardResponse> updateTaskTitle(@PathVariable UUID id, @RequestBody patchTaskTitleRequest request, @AuthenticationPrincipal UserDetails user){
-        return ResponseEntity.ok().body(taskService.patchTaskTitle(id,request ,user.getUsername()));
+    public ResponseEntity<TaskCardResponse> updateTaskTitle(@PathVariable UUID id, @RequestBody patchTaskTitleRequest request, @AuthenticationPrincipal UserDetails user) {
+        return ResponseEntity.ok().body(taskService.patchTaskTitle(id, request, user.getUsername()));
     }
 
     @PatchMapping("/{id}/assignedTo")
-    public ResponseEntity<TaskCardResponse> updateTaskMember(@PathVariable UUID id, @RequestBody patchTaskMemberRequest request, @AuthenticationPrincipal UserDetails user){
-        return ResponseEntity.ok().body(taskService.patchTaskMember(id,request ,user.getUsername()));
+    public ResponseEntity<TaskCardResponse> updateTaskMember(@PathVariable UUID id, @RequestBody patchTaskMemberRequest request, @AuthenticationPrincipal UserDetails user) {
+        return ResponseEntity.ok().body(taskService.patchTaskMember(id, request, user.getUsername()));
     }
 
     @PatchMapping("/{id}/description")
-    public ResponseEntity<TaskCardResponse> updateTaskDescription(@PathVariable UUID id, @RequestBody patchTaskDescriptionRequest request,@AuthenticationPrincipal UserDetails user){
-        return ResponseEntity.ok().body(taskService.patchTaskDescription(id,request , user.getUsername()));
+    public ResponseEntity<TaskCardResponse> updateTaskDescription(@PathVariable UUID id, @RequestBody patchTaskDescriptionRequest request, @AuthenticationPrincipal UserDetails user) {
+        return ResponseEntity.ok().body(taskService.patchTaskDescription(id, request, user.getUsername()));
     }
 
     @PatchMapping("/{id}/priority")
-    public ResponseEntity<TaskCardResponse> updateTaskPriority(@PathVariable UUID id, @RequestBody patchTaskPriorityRequest request,@AuthenticationPrincipal UserDetails user){
-        return ResponseEntity.ok().body(taskService.patchTaskPriority(id,request , user.getUsername()));
+    public ResponseEntity<TaskCardResponse> updateTaskPriority(@PathVariable UUID id, @RequestBody patchTaskPriorityRequest request, @AuthenticationPrincipal UserDetails user) {
+        return ResponseEntity.ok().body(taskService.patchTaskPriority(id, request, user.getUsername()));
     }
 
     @PatchMapping("/{id}/dueDate")
-    public ResponseEntity<TaskCardResponse> updateTaskDueDate(@PathVariable UUID id, @RequestBody patchTaskDueDateRequest request,@AuthenticationPrincipal UserDetails user){
-        return ResponseEntity.ok().body(taskService.patchTaskDueDate(id,request , user.getUsername()));
+    public ResponseEntity<TaskCardResponse> updateTaskDueDate(@PathVariable UUID id, @RequestBody patchTaskDueDateRequest request, @AuthenticationPrincipal UserDetails user) {
+        return ResponseEntity.ok().body(taskService.patchTaskDueDate(id, request, user.getUsername()));
     }
 
     @GetMapping("/{id}/comments")
-    public ResponseEntity<List<CommentResponse>> getCommentsOnTask(@PathVariable UUID id){
+    public ResponseEntity<List<CommentResponse>> getCommentsOnTask(@PathVariable UUID id) {
         return ResponseEntity.ok().body(taskService.getCommentsOnTask(id));
     }
 
     @PostMapping("/{id}/comments")
-    public ResponseEntity<CommentResponse> addCommentOnTask(@PathVariable UUID id, @Valid @RequestBody CommentRequest comment, @AuthenticationPrincipal UserDetails user){
+    public ResponseEntity<CommentResponse> addCommentOnTask(@PathVariable UUID id, @Valid @RequestBody CommentRequest comment, @AuthenticationPrincipal UserDetails user) {
         return ResponseEntity.ok().body(taskService.addCommentOnTask(id, comment, user.getUsername()));
     }
 
     @PutMapping("/{taskId}/comments/{commentId}")
-    public ResponseEntity<CommentResponse> addCommentOnTask(@PathVariable UUID taskId, @PathVariable UUID commentId, @Valid @RequestBody CommentRequest comment, @AuthenticationPrincipal UserDetails user){
+    public ResponseEntity<CommentResponse> addCommentOnTask(@PathVariable UUID taskId, @PathVariable UUID commentId, @Valid @RequestBody CommentRequest comment, @AuthenticationPrincipal UserDetails user) {
         return ResponseEntity.ok().body(taskService.updateComment(taskId, commentId, comment, user.getUsername()));
     }
 
     @DeleteMapping("/{taskId}/comments/{commentId}")
-    public ResponseEntity<String> addCommentOnTask(@PathVariable UUID taskId, @PathVariable UUID commentId, @AuthenticationPrincipal UserDetails user){
+    public ResponseEntity<String> addCommentOnTask(@PathVariable UUID taskId, @PathVariable UUID commentId, @AuthenticationPrincipal UserDetails user) {
         taskService.deleteComment(taskId, commentId, user.getUsername());
         return ResponseEntity.noContent().build();
     }

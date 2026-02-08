@@ -5,6 +5,7 @@ import com.saihoz.task_app.dto.ProjectDTO.*;
 import com.saihoz.task_app.dto.ProjectMemberDTO.PatchRoleMemberRequest;
 import com.saihoz.task_app.dto.ProjectMemberDTO.ProjectMemberRequest;
 import com.saihoz.task_app.dto.ProjectMemberDTO.ProjectMemberResponse;
+import com.saihoz.task_app.model.ProjectStatus;
 import com.saihoz.task_app.model.User;
 import com.saihoz.task_app.service.ProjectService;
 import jakarta.validation.Valid;
@@ -27,9 +28,28 @@ public class ProjectController {
     private ProjectService service;
 
     @GetMapping
-    public ResponseEntity<List<ProjectResponse>> getAllProjects(@AuthenticationPrincipal UserDetails user){
-        return ResponseEntity.ok().body(service.getAllProjects(user.getUsername()));
+    public ResponseEntity<List<ProjectSimpleResponse>> getProjects(
+            @AuthenticationPrincipal UserDetails user,
+            @RequestParam(required = false) ProjectStatus status
+    ) {
+        if (status != null) {
+            return ResponseEntity.ok(
+                    service.getProjectsByStatus(user.getUsername(), status)
+            );
+        }
+
+        return ResponseEntity.ok(
+                service.getAllProjects(user.getUsername())
+        );
     }
+
+    @GetMapping("dashboard")
+    public ResponseEntity<ProjectDashboardResponse> getDashboard(@AuthenticationPrincipal UserDetails user) {
+        return ResponseEntity.ok(
+                service.getDashboardProjects(user.getUsername())
+        );
+    }
+
 
     @GetMapping("/{id}")
     public ResponseEntity<ProjectResponse> getProject(@PathVariable UUID id, @AuthenticationPrincipal UserDetails user){

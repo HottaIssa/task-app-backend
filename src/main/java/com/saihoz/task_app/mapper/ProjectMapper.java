@@ -2,6 +2,7 @@ package com.saihoz.task_app.mapper;
 
 import com.saihoz.task_app.dto.ProjectDTO.ProjectRequest;
 import com.saihoz.task_app.dto.ProjectDTO.ProjectResponse;
+import com.saihoz.task_app.dto.ProjectDTO.ProjectSimpleResponse;
 import com.saihoz.task_app.model.Project;
 import com.saihoz.task_app.model.ProjectStatus;
 import com.saihoz.task_app.model.User;
@@ -42,6 +43,13 @@ public class ProjectMapper {
         project.setCreatedBy(user);
 
         return project;
+    }
+
+    public ProjectSimpleResponse toSimpleResponse(Project project){
+        return new ProjectSimpleResponse(
+                project.getId(),
+                project.getName()
+        );
     }
 
 }

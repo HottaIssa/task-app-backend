@@ -1,6 +1,7 @@
 package com.saihoz.task_app.mapper;
 
 import com.saihoz.task_app.dto.KanbanDTO.TaskCardResponse;
+import com.saihoz.task_app.dto.ProjectDTO.ProjectSimpleResponse;
 import com.saihoz.task_app.dto.TaskDTO.TaskRequest;
 import com.saihoz.task_app.dto.TaskDTO.TaskResponse;
 import com.saihoz.task_app.dto.TaskDTO.TaskSimpleResponse;
@@ -86,7 +87,11 @@ public class TaskMapper {
                 task.getAssignedTo() != null ?
                         userMapper.toSimpleResponse(task.getAssignedTo().getUser())
                         :
-                        null
+                        null,
+                new ProjectSimpleResponse(
+                        task.getProject().getId(),
+                        task.getProject().getName()
+                )
         );
     }
 }

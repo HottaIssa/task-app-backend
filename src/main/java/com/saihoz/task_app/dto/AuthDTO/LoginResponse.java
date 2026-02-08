@@ -1,4 +1,4 @@
-package com.saihoz.task_app.dto;
+package com.saihoz.task_app.dto.AuthDTO;
 
 public record LoginResponse(
         String token

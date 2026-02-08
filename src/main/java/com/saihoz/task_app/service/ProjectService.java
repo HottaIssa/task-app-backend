@@ -45,11 +45,23 @@ public class ProjectService {
     @Autowired
     private TaskStatusRepo taskStatusRepo;
 
-    public List<ProjectResponse> getAllProjects(String username){
+    public List<ProjectSimpleResponse> getAllProjects(String username){
         User user = userRepo.findByUsername(username);
-        List<Project> projects = projectRepo.findByMembers(user);
+        List<Project> projects = projectRepo.findByMembers(user).stream()
+                .filter(project -> project.isMember(user))
+                .toList();
         return projects.stream()
-                .map(project -> projectMapper.toResponse(project))
+                .map(project -> projectMapper.toSimpleResponse(project))
+                .collect(Collectors.toList());
+    }
+
+    public List<ProjectSimpleResponse> getProjectsByStatus(String username, ProjectStatus status){
+        User user = userRepo.findByUsername(username);
+        List<Project> projects = projectRepo.findMyProjectsByStatus(user, status).stream()
+                .filter(project -> project.isMember(user))
+                .toList();
+        return projects.stream()
+                .map(project -> projectMapper.toSimpleResponse(project))
                 .collect(Collectors.toList());
     }
 
@@ -82,18 +94,33 @@ public class ProjectService {
     public ProjectResponse patchProject(UUID id, ProjectRequest request, String username){
         User user = userRepo.findByUsername(username);
         Project project = projectRepo.findByIdAndMember(id, user);
-        if (request.name() != null) {
+        if (!project.getCreatedBy().equals(user)) {
+            throw new RuntimeException("Only admins can edit this project");
+        }
+
+        if (request.name() != null && !request.name().isBlank()) {
             project.setName(request.name());
         }
+
         if (request.description() != null) {
             project.setDescription(request.description());
         }
+
         if (request.status() != null) {
             project.setStatus(request.status());
         }
+
+        if (request.startDate() != null) {
+            project.setStartDate(request.startDate());
+        }
+
         if (request.endDate() != null) {
+            if (project.getStartDate() != null && request.endDate().isBefore(project.getStartDate())) {
+                throw new IllegalArgumentException("La fecha de fin no puede ser anterior a la de inicio");
+            }
             project.setEndDate(request.endDate());
         }
+
         Project updatedProject = projectRepo.save(project);
         return projectMapper.toResponse(updatedProject);
     }
@@ -112,7 +139,7 @@ public class ProjectService {
 
         Project project = projectRepo.findById(projectId).orElse(null);
 
-        ProjectMember member = memberRepo.findByUserAndProject(currentUser, project);
+        ProjectMember member = memberRepo.findByUserAndProjectAndIsActive(currentUser, project, true);
 
         List<TaskStatus> allStatuses = taskStatusRepo
                 .findByProjectOrProjectIsNullOrderByOrderIndex(project);
@@ -145,6 +172,8 @@ public class ProjectService {
         ProjectSummaryResponse projectSummary = new ProjectSummaryResponse(
                         project.getId(),
                         project.getName(),
+                        project.getStatus(),
+                        project.isOwner(currentUser),
                         project.getTotalTasks(),
                         (int) project.getCompletedTasksCount(),
                         member.getRoleMember());
@@ -200,4 +229,30 @@ public class ProjectService {
     }
 
 
+    public ProjectDashboardResponse getDashboardProjects(String username) {
+        User user = userRepo.findByUsername(username);
+
+        List<ProjectStatus> dashboardStatuses = List.of(
+                ProjectStatus.ACTIVE,
+                ProjectStatus.ON_HOLD,
+                ProjectStatus.COMPLETED
+        );
+
+        List<Project> projects = projectRepo.findMyProjectsByStatusIn(user, dashboardStatuses);
+
+        List<ProjectResponse> active = new ArrayList<>();
+        List<ProjectResponse> onHold = new ArrayList<>();
+        List<ProjectResponse> completed = new ArrayList<>();
+
+        for (Project p : projects) {
+            var mapped = projectMapper.toResponse(p);
+            switch (p.getStatus()) {
+                case ACTIVE -> active.add(mapped);
+                case ON_HOLD -> onHold.add(mapped);
+                case COMPLETED -> completed.add(mapped);
+            }
+        }
+
+        return new ProjectDashboardResponse(active, onHold, completed);
+    }
 }

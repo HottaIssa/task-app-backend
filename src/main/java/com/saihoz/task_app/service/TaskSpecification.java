@@ -1,20 +1,25 @@
 package com.saihoz.task_app.service;
 
-import com.saihoz.task_app.model.ProjectMember;
 import com.saihoz.task_app.model.Task;
 import com.saihoz.task_app.model.TaskStatus;
 import com.saihoz.task_app.model.User;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.JoinType;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.time.LocalDateTime;
 
 public class TaskSpecification {
 
-    public static Specification<Task> isOwnerOrAssignee(User user, ProjectMember member) {
-        return (root, query, cb) -> cb.or(
-                cb.equal(root.get("createdBy"), user),
-                cb.equal(root.get("assignedTo"), member)
-        );
+    public static Specification<Task> isOwnerOrAssignee(User user) {
+        return (root, query, cb) -> {
+            Join<Object, Object> assignedToJoin = root.join("assignedTo", JoinType.LEFT);
+
+            return cb.or(
+                    cb.equal(root.get("createdBy"), user),
+                    cb.equal(assignedToJoin.get("user"), user)
+            );
+        };
     }
 
     public static Specification<Task> projectId(Long projectId) {
@@ -74,11 +79,11 @@ public class TaskSpecification {
         };
     }
 
-    public static Specification<Task> isAssignedToMe(Boolean isAssignedTo, ProjectMember member) {
+    public static Specification<Task> isAssignedToMe(Boolean isAssignedTo, User user) {
         return (root, query, cb) -> {
             if (isAssignedTo == null || isAssignedTo == false) return null;
 
-            return cb.equal(root.get("assignedTo"), member);
+            return cb.equal(root.get("assignedTo").get("user"), user);
         };
     }
 

@@ -52,22 +52,21 @@ public class TaskService {
     }
 
     public PagedModel<TaskSimpleResponse> findTasksWithFilter(Long projectId, String status, String priority, String search,
-                                                            LocalDateTime dueFrom, LocalDateTime dueTo, Boolean isOverdue, Boolean isAssignedToMe, Boolean isCreatedByMe, String username, Pageable pageable) {
+                                                              LocalDateTime dueFrom, LocalDateTime dueTo, Boolean isOverdue, Boolean isAssignedToMe, Boolean isCreatedByMe, String username, Pageable pageable) {
         User user = userRepo.findByUsername(username);
-        ProjectMember member= memberRepo.findByUser(user);
 
         Specification<Task> spec = Specification
-                .where(TaskSpecification.isOwnerOrAssignee(user, member))
+                .where(TaskSpecification.isOwnerOrAssignee(user))
                 .and(TaskSpecification.projectId(projectId))
                 .and(TaskSpecification.status(taskStatusRepo.findByName(status)))
                 .and(TaskSpecification.priority(priority))
                 .and(TaskSpecification.search(search))
                 .and(TaskSpecification.dueBetween(dueFrom, dueTo))
                 .and(TaskSpecification.isOverdue(isOverdue))
-                .and(TaskSpecification.isAssignedToMe(isAssignedToMe, member))
+                .and(TaskSpecification.isAssignedToMe(isAssignedToMe, user))
                 .and(TaskSpecification.isCreatedByMe(isCreatedByMe, user));
 
-        Page<Task> tasks = taskRepo.findAll(spec,pageable);
+        Page<Task> tasks = taskRepo.findAll(spec, pageable);
         Page<TaskSimpleResponse> responsePage = tasks.map(taskMapper::toTaskSimpleResponse);
         return new PagedModel<>(responsePage);
     }
@@ -102,7 +101,7 @@ public class TaskService {
 
         task.setTitle(request.title());
         task.setDescription(request.description());
-        if(newAssignedMember != null){
+        if (newAssignedMember != null) {
             task.setAssignedTo(task.getProject().isMember(newAssignedMember.getUser()) ? newAssignedMember : null);
         } else {
             task.setAssignedTo(null);
@@ -120,67 +119,68 @@ public class TaskService {
         return taskMapper.toTaskCardResponse(updatedTask);
     }
 
+    private Task getTaskIfAdmin(UUID id, String username) {
+        User user = userRepo.findByUsername(username);
+        Task task = taskRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Task not found"));
+        ProjectMember member = memberRepo.findByUserAndProject(user, task.getProject());
+
+        if (!member.hasAdminPermissions()) {
+            throw new RuntimeException("No puedes editar, no eres el creador");
+        }
+        return task;
+    }
+
     public TaskCardResponse patchTaskStatus(UUID id, String username) {
         User user = userRepo.findByUsername(username);
-        Task taskToUpdate = taskRepo.findById(id).orElse(null);
+        Task taskToUpdate = getTaskIfAdmin(id, username);
         ProjectMember member = memberRepo.findByUserAndProject(user, taskToUpdate.getProject());
-        if(!(taskToUpdate.canUpdateStatus(member) || member.hasAdminPermissions())) throw new RuntimeException("No puedes editar");
-        if(taskToUpdate.isCompleted()) throw new RuntimeException("No puedes editar");
+        if (!taskToUpdate.canUpdateStatus(member)) throw new RuntimeException("No puedes editar");
+        if (taskToUpdate.isCompleted()) throw new RuntimeException("No puedes editar");
         taskToUpdate.setStatus(taskStatusRepo.findById(taskToUpdate.getStatus().getId() + 1).orElse(null));
         taskRepo.save(taskToUpdate);
         return taskMapper.toTaskCardResponse(taskToUpdate);
     }
 
     public TaskCardResponse patchTaskMember(UUID id, patchTaskMemberRequest request, String username) {
-        User user = userRepo.findByUsername(username);
-        Task taskToUpdate = taskRepo.findById(id).orElse(null);
-        if(!(taskToUpdate.getCreatedBy() == user)) throw new RuntimeException("No puedes editar");
+        Task taskToUpdate = getTaskIfAdmin(id, username);
         ProjectMember assignedTo = memberRepo.findById(request.memberId()).orElse(null);
-        if(!(taskToUpdate.getProject().isMember(assignedTo.getUser()))) throw new RuntimeException("No puedes editar");
+        if (!(taskToUpdate.getProject().isMember(assignedTo.getUser()))) throw new RuntimeException("No puedes editar");
         taskToUpdate.setAssignedTo(assignedTo);
         taskRepo.save(taskToUpdate);
         return taskMapper.toTaskCardResponse(taskToUpdate);
     }
 
     public TaskCardResponse patchTaskTitle(UUID id, patchTaskTitleRequest request, String username) {
-        User user = userRepo.findByUsername(username);
-        Task taskToUpdate = taskRepo.findById(id).orElse(null);
-        if(!(taskToUpdate.getCreatedBy() == user)) throw new RuntimeException("No puedes editar");
+        Task taskToUpdate = getTaskIfAdmin(id, username);
         taskToUpdate.setTitle(request.title());
         taskRepo.save(taskToUpdate);
         return taskMapper.toTaskCardResponse(taskToUpdate);
     }
 
     public TaskCardResponse patchTaskDescription(UUID id, patchTaskDescriptionRequest request, String username) {
-        User user = userRepo.findByUsername(username);
-        Task taskToUpdate = taskRepo.findById(id).orElse(null);
-        if(!(taskToUpdate.getCreatedBy() == user)) throw new RuntimeException("No puedes editar");
+        Task taskToUpdate = getTaskIfAdmin(id, username);
         taskToUpdate.setDescription(request.description());
         taskRepo.save(taskToUpdate);
         return taskMapper.toTaskCardResponse(taskToUpdate);
     }
 
     public TaskCardResponse patchTaskPriority(UUID id, patchTaskPriorityRequest request, String username) {
-        User user = userRepo.findByUsername(username);
-        Task taskToUpdate = taskRepo.findById(id).orElse(null);
-        if(!(taskToUpdate.getCreatedBy() == user)) throw new RuntimeException("No puedes editar");
+        Task taskToUpdate = getTaskIfAdmin(id, username);
         taskToUpdate.setPriority(request.priority());
         taskRepo.save(taskToUpdate);
         return taskMapper.toTaskCardResponse(taskToUpdate);
     }
 
     public TaskCardResponse patchTaskDueDate(UUID id, patchTaskDueDateRequest request, String username) {
-        User user = userRepo.findByUsername(username);
-        Task taskToUpdate = taskRepo.findById(id).orElse(null);
-        if(!(taskToUpdate.getCreatedBy() == user)) throw new RuntimeException("No puedes editar");
+        Task taskToUpdate = getTaskIfAdmin(id, username);
         taskToUpdate.setDueDate(request.dueDate());
         taskRepo.save(taskToUpdate);
         return taskMapper.toTaskCardResponse(taskToUpdate);
     }
 
     public void deleteTask(UUID id, String username) {
-        Task taskToDelete = taskRepo.findById(id).orElse(null);
-        if(!taskToDelete.getCreatedBy().getUsername().equals(username)) throw new RuntimeException("No puedes eliminar");
+        Task taskToDelete = getTaskIfAdmin(id, username);
         taskRepo.delete(taskToDelete);
     }
 
@@ -201,17 +201,18 @@ public class TaskService {
         Task task = taskRepo.findById(taskId).orElse(null);
         ProjectMember member = memberRepo.findByUserAndProject(user, task.getProject());
         Comment comment = commentRepo.findById(commentId).orElse(null);
-        if(!(member == comment.getMember())) throw new RuntimeException("No tienes los permisos necesarios");
+        if (!(member == comment.getMember())) throw new RuntimeException("No tienes los permisos necesarios");
         comment.setContent(request.content());
         return commentMapper.toResponse(commentRepo.save(comment));
     }
 
-    public void deleteComment(UUID taskId, UUID commentId, String username){
+    public void deleteComment(UUID taskId, UUID commentId, String username) {
         User user = userRepo.findByUsername(username);
         Task task = taskRepo.findById(taskId).orElse(null);
         ProjectMember member = memberRepo.findByUserAndProject(user, task.getProject());
         Comment comment = commentRepo.findById(commentId).orElse(null);
-        if(!member.hasAdminPermissions() || !(member == comment.getMember())) throw new RuntimeException("No tienes los permisos necesarios");
+        if (!member.hasAdminPermissions() || !(member == comment.getMember()))
+            throw new RuntimeException("No tienes los permisos necesarios");
         commentRepo.delete(comment);
     }
 

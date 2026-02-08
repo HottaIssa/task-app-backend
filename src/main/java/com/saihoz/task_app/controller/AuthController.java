@@ -1,7 +1,8 @@
 package com.saihoz.task_app.controller;
 
-import com.saihoz.task_app.dto.LoginResponse;
-import com.saihoz.task_app.dto.RegisterResponse;
+import com.saihoz.task_app.dto.AuthDTO.LoginResponse;
+import com.saihoz.task_app.dto.AuthDTO.PatchPasswordRequest;
+import com.saihoz.task_app.dto.UserDTO.GuestResponse;
 import com.saihoz.task_app.dto.UserDTO.UserResponse;
 import com.saihoz.task_app.dto.UserDTO.UserSimpleResponse;
 import com.saihoz.task_app.model.User;
@@ -10,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -17,6 +19,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import com.saihoz.task_app.service.JwtService;
 import com.saihoz.task_app.service.UserService;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -39,23 +43,46 @@ public class AuthController {
     @PostMapping("login")
     public ResponseEntity<?> login(@RequestBody User user) {
 
-        Authentication authentication = authenticationManager
-                .authenticate(new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword()));
-
-        if (authentication.isAuthenticated()) {
+        try {
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            user.getUsername().toLowerCase(),
+                            user.getPassword()
+                    )
+            );
 
             UserPrincipal principal = (UserPrincipal) authentication.getPrincipal();
-
             String token = jwtService.generateToken(principal);
 
             return ResponseEntity.ok(new LoginResponse(token));
-        }
 
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Login Failed");
+        } catch (BadCredentialsException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Usuario o contraseña incorrectos");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error interno: " + e.getMessage());
+        }
+    }
+
+    @PatchMapping("password")
+    public ResponseEntity<String> updatePassword(@RequestBody PatchPasswordRequest request, @AuthenticationPrincipal UserDetails user){
+        service.updatePassword(request, user.getUsername());
+        return ResponseEntity.ok().body("Password updated");
     }
 
     @GetMapping("me")
     public ResponseEntity<UserSimpleResponse> getMe(@AuthenticationPrincipal UserDetails user){
         return ResponseEntity.ok().body(service.getUserByUsername(user.getUsername()));
+    }
+
+    @GetMapping("invitations")
+    public ResponseEntity<List<GuestResponse>> getGuest(@AuthenticationPrincipal UserDetails user){
+        return ResponseEntity.ok().body(service.getGuest(user.getUsername()));
+    }
+
+    @DeleteMapping
+    public ResponseEntity<?> deleteUser(@AuthenticationPrincipal UserDetails user){
+        service.deleteUser(user.getUsername());
+        return ResponseEntity.noContent().build();
     }
 }

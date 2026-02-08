@@ -1,4 +1,4 @@
-package com.saihoz.task_app.dto;
+package com.saihoz.task_app.dto.AuthDTO;
 
 import java.util.UUID;
 

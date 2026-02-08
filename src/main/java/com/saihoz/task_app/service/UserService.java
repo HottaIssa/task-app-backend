@@ -1,17 +1,16 @@
 package com.saihoz.task_app.service;
 
 
-import com.saihoz.task_app.dto.RegisterResponse;
-import com.saihoz.task_app.dto.TaskDTO.TaskResponse;
+import com.saihoz.task_app.dto.AuthDTO.PatchPasswordRequest;
+import com.saihoz.task_app.dto.UserDTO.GuestResponse;
 import com.saihoz.task_app.dto.UserDTO.UserResponse;
 import com.saihoz.task_app.dto.UserDTO.UserSimpleResponse;
-import com.saihoz.task_app.mapper.TaskMapper;
+import com.saihoz.task_app.mapper.ProjectMemberMapper;
 import com.saihoz.task_app.mapper.UserMapper;
+import com.saihoz.task_app.model.ProjectMember;
 import com.saihoz.task_app.model.Role;
 import com.saihoz.task_app.model.User;
-import com.saihoz.task_app.repo.TaskRepo;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
+import com.saihoz.task_app.repo.MemberRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -19,6 +18,7 @@ import com.saihoz.task_app.repo.UserRepo;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService {
@@ -27,14 +27,18 @@ public class UserService {
     private UserRepo repo;
 
     @Autowired
-    private TaskRepo taskRepo;
+    private UserMapper userMapper;
 
     @Autowired
-    private UserMapper userMapper;
+    private MemberRepo memberRepo;
+
+    @Autowired
+    private ProjectMemberMapper memberMapper;
 
     private BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
 
     public UserResponse saveUser(User user) {
+        user.setUsername(user.getUsername().toLowerCase());
         user.setPassword(encoder.encode(user.getPassword()));
         user.setRole(Role.USER);
         User savedUser = repo.save(user);
@@ -48,5 +52,26 @@ public class UserService {
 
     public UserSimpleResponse getUserByUsername(String username) {
         return userMapper.toSimpleResponse(repo.findByUsername(username));
+    }
+
+    public void deleteUser(String username) {
+        repo.deleteByUsername(username);
+    }
+
+    public List<GuestResponse> getGuest(String username) {
+        User user = repo.findByUsername(username);
+        List<ProjectMember> members = memberRepo.findByInvitedBy(user);
+
+        return members.stream().map(projectMember -> memberMapper.toGuestResponse(projectMember)).collect(Collectors.toList());
+    }
+
+    public void updatePassword(PatchPasswordRequest request, String username) {
+        if(!request.newPassword().equals(request.confirmationPassword())) throw new RuntimeException("Confirmation password not match");
+        User user = repo.findByUsername(username);
+        System.out.println(user.getUsername());
+        System.out.println(encoder.matches(request.currentPassword(), user.getPassword()));
+        if(!encoder.matches(request.currentPassword(), user.getPassword())) throw new RuntimeException("Not is your current password");
+        user.setPassword(encoder.encode(request.newPassword()));
+        repo.save(user);
     }
 }

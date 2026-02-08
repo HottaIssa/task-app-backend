@@ -59,45 +59,23 @@ public class Project {
 
     @OneToMany(mappedBy = "project", cascade = CascadeType.REMOVE, orphanRemoval = true)
     @Builder.Default
-    private List<ProjectMember> members = new ArrayList<>(); // ✅ Plural
+    private List<ProjectMember> members = new ArrayList<>();
 
     @OneToMany(mappedBy = "project", cascade = CascadeType.REMOVE, orphanRemoval = true)
     @Builder.Default
-    private List<Task> tasks = new ArrayList<>(); // ✅ Plural
-
-    public void addMember(ProjectMember member) {
-        members.add(member);
-        member.setProject(this);
-    }
-
-    public void removeMember(ProjectMember member) {
-        members.remove(member);
-        member.setProject(null);
-    }
-
-    public void addTask(Task task) {
-        tasks.add(task);
-        task.setProject(this);
-    }
-
-    public void removeTask(Task task) {
-        tasks.remove(task);
-        task.setProject(null);
-    }
+    private List<Task> tasks = new ArrayList<>();
 
     public boolean isMember(User user) {
         if (user == null) {
             return false;
         }
 
-        // El creador siempre es miembro
         if (createdBy.equals(user)) {
             return true;
         }
 
-        // Verificar en la lista de miembros
         return members.stream()
-                .anyMatch(member -> member.getUser().equals(user));
+                .anyMatch(member -> member.getUser().equals(user) && member.getIsActive());
     }
 
     public boolean isAdmin(User user) {
@@ -105,15 +83,21 @@ public class Project {
             return false;
         }
 
-        // El creador es owner
         if (createdBy.equals(user)) {
             return true;
         }
 
-        // Verificar si tiene rol de admin
         return members.stream()
                 .anyMatch(member -> member.getUser().equals(user) &&
                         member.getRoleMember() == RoleMember.ADMIN);
+    }
+
+    public boolean isOwner(User user){
+        if(user == null){
+            return false;
+        }
+
+        return createdBy.equals(user);
     }
 
     public RoleMember getUserRole(User user) {

@@ -1,5 +1,6 @@
 package com.saihoz.task_app.dto.TaskDTO;
 
+import com.saihoz.task_app.dto.ProjectDTO.ProjectSimpleResponse;
 import com.saihoz.task_app.dto.UserDTO.UserSimpleResponse;
 
 import java.time.LocalDateTime;
@@ -13,6 +14,7 @@ public record TaskSimpleResponse(
         TaskStatusResponse status,
         LocalDateTime dueDate,
         Boolean isOverdue,
-        UserSimpleResponse assignedTo
+        UserSimpleResponse assignedTo,
+        ProjectSimpleResponse project
 ) {
 }
