@@ -2,7 +2,6 @@ package com.saihoz.task_app.controller;
 
 import com.saihoz.task_app.dto.TaskDTO.TaskStatusRequest;
 import com.saihoz.task_app.dto.TaskDTO.TaskStatusResponse;
-import com.saihoz.task_app.model.TaskStatus;
 import com.saihoz.task_app.service.TaskStatusService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;

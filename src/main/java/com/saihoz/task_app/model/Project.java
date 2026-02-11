@@ -29,9 +29,7 @@ public class Project {
     @Column(nullable = false)
     private String name;
 
-    @NotBlank(message = "The description of the project cannot be empty")
     @Size(max = 200, message = "The description of the project cannot exceed 200 characters")
-    @Column(nullable = false)
     private String description;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -105,12 +103,10 @@ public class Project {
             return null;
         }
 
-        // El creador es owner
         if (createdBy.equals(user)) {
             return RoleMember.ADMIN;
         }
 
-        // Buscar en la lista de miembros
         return members.stream()
                 .filter(member -> member.getUser().equals(user))
                 .findFirst()

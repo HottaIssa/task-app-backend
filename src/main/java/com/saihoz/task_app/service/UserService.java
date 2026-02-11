@@ -1,6 +1,5 @@
 package com.saihoz.task_app.service;
 
-
 import com.saihoz.task_app.dto.AuthDTO.PatchPasswordRequest;
 import com.saihoz.task_app.dto.UserDTO.GuestResponse;
 import com.saihoz.task_app.dto.UserDTO.UserResponse;
@@ -15,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import com.saihoz.task_app.repo.UserRepo;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.UUID;
@@ -35,12 +35,16 @@ public class UserService {
     @Autowired
     private ProjectMemberMapper memberMapper;
 
+    @Autowired
+    private StorageService storageService;
+
     private BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
 
     public UserResponse saveUser(User user) {
         user.setUsername(user.getUsername().toLowerCase());
         user.setPassword(encoder.encode(user.getPassword()));
         user.setRole(Role.USER);
+        user.setAvatar_url("images/profile-default.webp");
         User savedUser = repo.save(user);
         return userMapper.toResponse(savedUser);
     }
@@ -52,6 +56,13 @@ public class UserService {
 
     public UserSimpleResponse getUserByUsername(String username) {
         return userMapper.toSimpleResponse(repo.findByUsername(username));
+    }
+
+    public void updateAvatar(String username, MultipartFile file){
+        User user = repo.findByUsername(username);
+        String newAvatarUrl = storageService.uploadImage(user.getId(), file);
+        user.setAvatar_url(newAvatarUrl);
+        repo.save(user);
     }
 
     public void deleteUser(String username) {

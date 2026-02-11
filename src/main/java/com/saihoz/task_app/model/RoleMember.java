@@ -4,7 +4,7 @@ import lombok.Getter;
 
 @Getter
 public enum RoleMember {
-    ADMIN("Admin"), MEMBER("Member"), VIEWER("Viewer");
+    OWNER("Owner"), ADMIN("Admin"), MEMBER("Member"), VIEWER("Viewer");
 
     private final String displayName;
 

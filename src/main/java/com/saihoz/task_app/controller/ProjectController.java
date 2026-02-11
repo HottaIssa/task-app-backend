@@ -6,7 +6,6 @@ import com.saihoz.task_app.dto.ProjectMemberDTO.PatchRoleMemberRequest;
 import com.saihoz.task_app.dto.ProjectMemberDTO.ProjectMemberRequest;
 import com.saihoz.task_app.dto.ProjectMemberDTO.ProjectMemberResponse;
 import com.saihoz.task_app.model.ProjectStatus;
-import com.saihoz.task_app.model.User;
 import com.saihoz.task_app.service.ProjectService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;

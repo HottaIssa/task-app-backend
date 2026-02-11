@@ -9,7 +9,6 @@ public record ProjectSummaryResponse(
         UUID id,
         String name,
         ProjectStatus status,
-        Boolean isOwner,
         Integer totalTasks,
         Integer completeTasks,
         RoleMember roleMember

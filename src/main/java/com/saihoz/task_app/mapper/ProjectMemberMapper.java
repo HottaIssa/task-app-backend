@@ -56,7 +56,8 @@ public class ProjectMemberMapper {
                 ),
                 new ProjectSimpleResponse(
                         member.getProject().getId(),
-                        member.getProject().getName()
+                        member.getProject().getName(),
+                        member.getProject().getUpdatedAt()
                 ),
                 member.getJoinedAt()
 

@@ -6,7 +6,6 @@ import com.saihoz.task_app.dto.TaskDTO.TaskRequest;
 import com.saihoz.task_app.dto.TaskDTO.TaskResponse;
 import com.saihoz.task_app.dto.TaskDTO.TaskSimpleResponse;
 import com.saihoz.task_app.dto.TaskDTO.TaskStatusResponse;
-import com.saihoz.task_app.dto.UserDTO.UserSimpleResponse;
 import com.saihoz.task_app.model.*;
 import org.springframework.stereotype.Component;
 
@@ -29,7 +28,7 @@ public class TaskMapper {
                 task.getDescription(),
                 task.getProject().getId(),
                 task.getProject().getName(),
-                task.getAssignedTo() != null ? projectMemberMapper.toSimpleResponse(task.getAssignedTo()) : null,
+                task.getAssignedTo() != null ? userMapper.toSimpleResponse(task.getAssignedTo().getUser()) : null,
                 new TaskStatusResponse(
                         task.getStatus().getId(),
                         task.getStatus().getName(),
@@ -90,7 +89,8 @@ public class TaskMapper {
                         null,
                 new ProjectSimpleResponse(
                         task.getProject().getId(),
-                        task.getProject().getName()
+                        task.getProject().getName(),
+                        task.getProject().getUpdatedAt()
                 )
         );
     }

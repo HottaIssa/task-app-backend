@@ -133,7 +133,7 @@ public class TaskService {
 
     public TaskCardResponse patchTaskStatus(UUID id, String username) {
         User user = userRepo.findByUsername(username);
-        Task taskToUpdate = getTaskIfAdmin(id, username);
+        Task taskToUpdate = taskRepo.findById(id).orElse(null);
         ProjectMember member = memberRepo.findByUserAndProject(user, taskToUpdate.getProject());
         if (!taskToUpdate.canUpdateStatus(member)) throw new RuntimeException("No puedes editar");
         if (taskToUpdate.isCompleted()) throw new RuntimeException("No puedes editar");
@@ -151,30 +151,24 @@ public class TaskService {
         return taskMapper.toTaskCardResponse(taskToUpdate);
     }
 
-    public TaskCardResponse patchTaskTitle(UUID id, patchTaskTitleRequest request, String username) {
+    public TaskCardResponse patchTask(UUID id, PatchTaskRequest request, String username){
         Task taskToUpdate = getTaskIfAdmin(id, username);
-        taskToUpdate.setTitle(request.title());
-        taskRepo.save(taskToUpdate);
-        return taskMapper.toTaskCardResponse(taskToUpdate);
-    }
+        if (request.title() != null && !request.title().isBlank()) {
+            taskToUpdate.setTitle(request.title());
+        }
 
-    public TaskCardResponse patchTaskDescription(UUID id, patchTaskDescriptionRequest request, String username) {
-        Task taskToUpdate = getTaskIfAdmin(id, username);
-        taskToUpdate.setDescription(request.description());
-        taskRepo.save(taskToUpdate);
-        return taskMapper.toTaskCardResponse(taskToUpdate);
-    }
+        if (request.description() != null) {
+            taskToUpdate.setDescription(request.description());
+        }
 
-    public TaskCardResponse patchTaskPriority(UUID id, patchTaskPriorityRequest request, String username) {
-        Task taskToUpdate = getTaskIfAdmin(id, username);
-        taskToUpdate.setPriority(request.priority());
-        taskRepo.save(taskToUpdate);
-        return taskMapper.toTaskCardResponse(taskToUpdate);
-    }
+        if (request.priority() != null) {
+            taskToUpdate.setPriority(request.priority());
+        }
 
-    public TaskCardResponse patchTaskDueDate(UUID id, patchTaskDueDateRequest request, String username) {
-        Task taskToUpdate = getTaskIfAdmin(id, username);
-        taskToUpdate.setDueDate(request.dueDate());
+        if (request.dueDate() != null) {
+            taskToUpdate.setDueDate(request.dueDate());
+        }
+
         taskRepo.save(taskToUpdate);
         return taskMapper.toTaskCardResponse(taskToUpdate);
     }

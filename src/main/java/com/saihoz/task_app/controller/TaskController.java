@@ -73,29 +73,14 @@ public class TaskController {
         return ResponseEntity.ok().body(taskService.patchTaskStatus(id, user.getUsername()));
     }
 
-    @PatchMapping("/{id}/title")
-    public ResponseEntity<TaskCardResponse> updateTaskTitle(@PathVariable UUID id, @RequestBody patchTaskTitleRequest request, @AuthenticationPrincipal UserDetails user) {
-        return ResponseEntity.ok().body(taskService.patchTaskTitle(id, request, user.getUsername()));
+    @PatchMapping("/{id}")
+    public ResponseEntity<TaskCardResponse> updateTask(@PathVariable UUID id, @Valid @RequestBody PatchTaskRequest task, @AuthenticationPrincipal UserDetails user) {
+        return ResponseEntity.ok().body(taskService.patchTask(id, task, user.getUsername()));
     }
 
     @PatchMapping("/{id}/assignedTo")
     public ResponseEntity<TaskCardResponse> updateTaskMember(@PathVariable UUID id, @RequestBody patchTaskMemberRequest request, @AuthenticationPrincipal UserDetails user) {
         return ResponseEntity.ok().body(taskService.patchTaskMember(id, request, user.getUsername()));
-    }
-
-    @PatchMapping("/{id}/description")
-    public ResponseEntity<TaskCardResponse> updateTaskDescription(@PathVariable UUID id, @RequestBody patchTaskDescriptionRequest request, @AuthenticationPrincipal UserDetails user) {
-        return ResponseEntity.ok().body(taskService.patchTaskDescription(id, request, user.getUsername()));
-    }
-
-    @PatchMapping("/{id}/priority")
-    public ResponseEntity<TaskCardResponse> updateTaskPriority(@PathVariable UUID id, @RequestBody patchTaskPriorityRequest request, @AuthenticationPrincipal UserDetails user) {
-        return ResponseEntity.ok().body(taskService.patchTaskPriority(id, request, user.getUsername()));
-    }
-
-    @PatchMapping("/{id}/dueDate")
-    public ResponseEntity<TaskCardResponse> updateTaskDueDate(@PathVariable UUID id, @RequestBody patchTaskDueDateRequest request, @AuthenticationPrincipal UserDetails user) {
-        return ResponseEntity.ok().body(taskService.patchTaskDueDate(id, request, user.getUsername()));
     }
 
     @GetMapping("/{id}/comments")

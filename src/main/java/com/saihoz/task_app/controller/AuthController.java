@@ -1,10 +1,7 @@
 package com.saihoz.task_app.controller;
 
 import com.saihoz.task_app.dto.AuthDTO.LoginResponse;
-import com.saihoz.task_app.dto.AuthDTO.PatchPasswordRequest;
-import com.saihoz.task_app.dto.UserDTO.GuestResponse;
 import com.saihoz.task_app.dto.UserDTO.UserResponse;
-import com.saihoz.task_app.dto.UserDTO.UserSimpleResponse;
 import com.saihoz.task_app.model.User;
 import com.saihoz.task_app.model.UserPrincipal;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,22 +59,6 @@ public class AuthController {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error interno: " + e.getMessage());
         }
-    }
-
-    @PatchMapping("password")
-    public ResponseEntity<String> updatePassword(@RequestBody PatchPasswordRequest request, @AuthenticationPrincipal UserDetails user){
-        service.updatePassword(request, user.getUsername());
-        return ResponseEntity.ok().body("Password updated");
-    }
-
-    @GetMapping("me")
-    public ResponseEntity<UserSimpleResponse> getMe(@AuthenticationPrincipal UserDetails user){
-        return ResponseEntity.ok().body(service.getUserByUsername(user.getUsername()));
-    }
-
-    @GetMapping("invitations")
-    public ResponseEntity<List<GuestResponse>> getGuest(@AuthenticationPrincipal UserDetails user){
-        return ResponseEntity.ok().body(service.getGuest(user.getUsername()));
     }
 
     @DeleteMapping

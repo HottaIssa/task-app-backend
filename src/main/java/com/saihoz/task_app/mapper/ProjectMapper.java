@@ -48,7 +48,8 @@ public class ProjectMapper {
     public ProjectSimpleResponse toSimpleResponse(Project project){
         return new ProjectSimpleResponse(
                 project.getId(),
-                project.getName()
+                project.getName(),
+                project.getUpdatedAt()
         );
     }
 

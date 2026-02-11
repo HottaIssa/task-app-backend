@@ -1,6 +1,5 @@
 package com.saihoz.task_app.dto.ProjectMemberDTO;
 
-import com.saihoz.task_app.dto.UserDTO.UserResponse;
 import com.saihoz.task_app.dto.UserDTO.UserSimpleResponse;
 
 import java.time.LocalDateTime;

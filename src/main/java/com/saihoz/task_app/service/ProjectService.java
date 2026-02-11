@@ -73,7 +73,8 @@ public class ProjectService {
     public ProjectResponse addProject(ProjectRequest request, String username){
         User user = userRepo.findByUsername(username);
         Project project = projectMapper.toEntity(request, user);
-        ProjectMember projectMember = projectMemberMapper.toEntity(user, project, RoleMember.ADMIN, null);
+        ProjectMember projectMember = projectMemberMapper.toEntity(user, project, RoleMember.OWNER, null);
+        System.out.println(project.getName());
         ProjectResponse projectSaved = projectMapper.toResponse(projectRepo.save(project));
         memberRepo.save(projectMember);
         return projectSaved;
@@ -106,7 +107,7 @@ public class ProjectService {
             project.setDescription(request.description());
         }
 
-        if (request.status() != null) {
+        if (request.status() != null && project.isOwner(user)) {
             project.setStatus(request.status());
         }
 
@@ -173,7 +174,6 @@ public class ProjectService {
                         project.getId(),
                         project.getName(),
                         project.getStatus(),
-                        project.isOwner(currentUser),
                         project.getTotalTasks(),
                         (int) project.getCompletedTasksCount(),
                         member.getRoleMember());
@@ -254,5 +254,29 @@ public class ProjectService {
         }
 
         return new ProjectDashboardResponse(active, onHold, completed);
+    }
+
+    public ProjectHistoryResponse getHistoryProjects(String username){
+        User user = userRepo.findByUsername(username);
+
+        List<ProjectStatus> historyStatuses = List.of(
+                ProjectStatus.COMPLETED,
+                ProjectStatus.CANCELLED
+        );
+
+        List<Project> projects = projectRepo.findMyProjectsByStatusIn(user, historyStatuses);
+
+        List<ProjectResponse> completed = new ArrayList<>();
+        List<ProjectResponse> cancelled = new ArrayList<>();
+
+        for (Project p : projects) {
+            var mapped = projectMapper.toResponse(p);
+            switch (p.getStatus()) {
+                case COMPLETED -> completed.add(mapped);
+                case CANCELLED -> cancelled.add(mapped);
+            }
+        }
+
+        return new ProjectHistoryResponse(completed, cancelled);
     }
 }

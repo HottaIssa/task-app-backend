@@ -1,6 +1,5 @@
 package com.saihoz.task_app.dto.KanbanDTO;
 
-
 import com.saihoz.task_app.dto.ProjectMemberDTO.ProjectMemberSimpleResponse;
 
 import java.time.LocalDateTime;

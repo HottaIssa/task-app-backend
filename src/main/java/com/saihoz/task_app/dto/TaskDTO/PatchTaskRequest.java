@@ -2,13 +2,12 @@ package com.saihoz.task_app.dto.TaskDTO;
 
 import com.saihoz.task_app.model.PriorityStatus;
 
-import java.util.UUID;
+import java.time.LocalDateTime;
 
-public record TaskRequest(
+public record PatchTaskRequest(
         String title,
         String description,
-        UUID projectId,
-        String status,
-        PriorityStatus priority
+        PriorityStatus priority,
+        LocalDateTime dueDate
 ) {
 }

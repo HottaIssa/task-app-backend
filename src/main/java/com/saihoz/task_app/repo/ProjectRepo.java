@@ -13,19 +13,15 @@ import java.util.UUID;
 @Repository
 public interface ProjectRepo extends JpaRepository<Project, UUID> {
 
-    List<Project> findByCreatedBy(User user);
-
-    Project findByIdAndCreatedBy(UUID id, User user);
-
     @Query("SELECT p FROM Project p JOIN ProjectMember m ON p = m.project WHERE m.user = :user")
     List<Project> findByMembers(User user);
 
     @Query("SELECT p FROM Project p JOIN ProjectMember m ON p = m.project WHERE p.id = :id AND m.user = :user")
     Project findByIdAndMember(UUID id, User user);
 
-    @Query("SELECT p FROM Project p JOIN ProjectMember m ON p = m.project WHERE p.status = :status AND m.user = :user")
+    @Query("SELECT p FROM Project p JOIN ProjectMember m ON p = m.project WHERE p.status = :status AND m.user = :user AND m.isActive = true")
     List<Project> findMyProjectsByStatus(User user, ProjectStatus status);
 
-    @Query("SELECT p FROM Project p JOIN ProjectMember m ON p = m.project WHERE p.status IN :dashboardStatuses AND m.user = :user")
+    @Query("SELECT p FROM Project p JOIN ProjectMember m ON p = m.project WHERE p.status IN :dashboardStatuses AND m.user = :user AND m.isActive = true")
     List<Project> findMyProjectsByStatusIn(User user, List<ProjectStatus> dashboardStatuses);
 }
