@@ -43,7 +43,7 @@ public class UserController {
         return ResponseEntity.ok().body(service.getGuest(user.getUsername()));
     }
 
-    @PatchMapping("update-avatar")
+    @PatchMapping("avatar")
     public ResponseEntity<?> updateAvatar(@AuthenticationPrincipal UserDetails user, @RequestParam("file") MultipartFile file){
         service.updateAvatar(user.getUsername(), file);
         return ResponseEntity.ok().body("Avatar updated successfully");

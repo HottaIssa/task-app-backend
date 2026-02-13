@@ -5,12 +5,17 @@ import com.saihoz.task_app.dto.ProjectMemberDTO.ProjectMemberResponse;
 import com.saihoz.task_app.dto.ProjectMemberDTO.ProjectMemberSimpleResponse;
 import com.saihoz.task_app.dto.UserDTO.GuestResponse;
 import com.saihoz.task_app.model.*;
+import com.saihoz.task_app.service.StorageService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 public class ProjectMemberMapper {
 
     private final UserMapper userMapper;
+
+    @Autowired
+    private StorageService storageService;
 
     public ProjectMemberMapper(UserMapper userMapper) {
         this.userMapper = userMapper;
@@ -43,6 +48,7 @@ public class ProjectMemberMapper {
                 member.getUser().getUsername(),
                 member.getUser().getFullName(),
                 member.getUser().getEmail(),
+//                storageService.getPresignedUrl(member.getUser().getAvatar_url())
                 member.getUser().getAvatar_url()
         );
     }

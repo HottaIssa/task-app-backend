@@ -74,7 +74,6 @@ public class ProjectService {
         User user = userRepo.findByUsername(username);
         Project project = projectMapper.toEntity(request, user);
         ProjectMember projectMember = projectMemberMapper.toEntity(user, project, RoleMember.OWNER, null);
-        System.out.println(project.getName());
         ProjectResponse projectSaved = projectMapper.toResponse(projectRepo.save(project));
         memberRepo.save(projectMember);
         return projectSaved;
@@ -266,11 +265,11 @@ public class ProjectService {
 
         List<Project> projects = projectRepo.findMyProjectsByStatusIn(user, historyStatuses);
 
-        List<ProjectResponse> completed = new ArrayList<>();
-        List<ProjectResponse> cancelled = new ArrayList<>();
+        List<ProjectSimpleResponse> completed = new ArrayList<>();
+        List<ProjectSimpleResponse> cancelled = new ArrayList<>();
 
         for (Project p : projects) {
-            var mapped = projectMapper.toResponse(p);
+            var mapped = projectMapper.toSimpleResponse(p);
             switch (p.getStatus()) {
                 case COMPLETED -> completed.add(mapped);
                 case CANCELLED -> cancelled.add(mapped);

@@ -48,7 +48,7 @@ public class ProjectMember {
     private List<Comment> comments;
 
     public boolean hasAdminPermissions() {
-        return roleMember == RoleMember.ADMIN;
+        return roleMember == RoleMember.ADMIN || roleMember == RoleMember.OWNER;
     }
 
     public boolean canEditTasks() {

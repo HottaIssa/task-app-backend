@@ -79,8 +79,6 @@ public class UserService {
     public void updatePassword(PatchPasswordRequest request, String username) {
         if(!request.newPassword().equals(request.confirmationPassword())) throw new RuntimeException("Confirmation password not match");
         User user = repo.findByUsername(username);
-        System.out.println(user.getUsername());
-        System.out.println(encoder.matches(request.currentPassword(), user.getPassword()));
         if(!encoder.matches(request.currentPassword(), user.getPassword())) throw new RuntimeException("Not is your current password");
         user.setPassword(encoder.encode(request.newPassword()));
         repo.save(user);

@@ -10,6 +10,7 @@ import com.saihoz.task_app.mapper.TaskMapper;
 import com.saihoz.task_app.model.*;
 import com.saihoz.task_app.repo.*;
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -22,6 +23,7 @@ import java.util.UUID;
 
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class TaskService {
 
     private final TaskRepo taskRepo;
@@ -40,16 +42,7 @@ public class TaskService {
 
     private final ProjectRepo projectRepo;
 
-    public TaskService(TaskRepo taskRepo, UserRepo userRepo, CommentRepo commentRepo, TaskStatusRepo taskStatusRepo, TaskMapper taskMapper, ProjectRepo projectRepo, MemberRepo memberRepo, CommentMapper commentMapper) {
-        this.taskRepo = taskRepo;
-        this.userRepo = userRepo;
-        this.commentRepo = commentRepo;
-        this.taskStatusRepo = taskStatusRepo;
-        this.taskMapper = taskMapper;
-        this.projectRepo = projectRepo;
-        this.memberRepo = memberRepo;
-        this.commentMapper = commentMapper;
-    }
+    private final NotificationService notificationService;
 
     public PagedModel<TaskSimpleResponse> findTasksWithFilter(Long projectId, String status, String priority, String search,
                                                               LocalDateTime dueFrom, LocalDateTime dueTo, Boolean isOverdue, Boolean isAssignedToMe, Boolean isCreatedByMe, String username, Pageable pageable) {
@@ -143,11 +136,17 @@ public class TaskService {
     }
 
     public TaskCardResponse patchTaskMember(UUID id, patchTaskMemberRequest request, String username) {
+        User currentUser = userRepo.findByUsername(username);
         Task taskToUpdate = getTaskIfAdmin(id, username);
         ProjectMember assignedTo = memberRepo.findById(request.memberId()).orElse(null);
         if (!(taskToUpdate.getProject().isMember(assignedTo.getUser()))) throw new RuntimeException("No puedes editar");
         taskToUpdate.setAssignedTo(assignedTo);
         taskRepo.save(taskToUpdate);
+        notificationService.notifyTaskAssignment(
+                assignedTo.getUser(),
+                taskToUpdate,
+                currentUser
+        );
         return taskMapper.toTaskCardResponse(taskToUpdate);
     }
 

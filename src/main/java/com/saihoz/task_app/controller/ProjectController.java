@@ -49,6 +49,13 @@ public class ProjectController {
         );
     }
 
+    @GetMapping("history")
+    public ResponseEntity<ProjectHistoryResponse> getHistory(@AuthenticationPrincipal UserDetails user){
+        return ResponseEntity.ok(
+                service.getHistoryProjects(user.getUsername())
+        );
+    }
+
 
     @GetMapping("/{id}")
     public ResponseEntity<ProjectResponse> getProject(@PathVariable UUID id, @AuthenticationPrincipal UserDetails user){
