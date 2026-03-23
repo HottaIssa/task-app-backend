@@ -13,8 +13,6 @@ services:
 
   app:
     build: .
-    env_file:
-      - .env
     container_name: task_app
     depends_on:
       - postgres
@@ -24,6 +22,6 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/task_app
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: admin123
-      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_HIBERNATE_DDL_AUTO: validate
 
 

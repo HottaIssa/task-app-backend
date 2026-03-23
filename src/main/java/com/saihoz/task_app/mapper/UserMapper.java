@@ -21,8 +21,8 @@ public class UserMapper {
                 user.getFirstName(),
                 user.getLastName(),
                 user.getRole().getDisplayName(),
-//                storageService.getPresignedUrl(user.getAvatar_url())
-                user.getAvatar_url()
+                storageService.getPresignedUrl(user.getAvatar_url())
+//                user.getAvatar_url()
         );
     }
 
@@ -33,8 +33,8 @@ public class UserMapper {
                 user.getUsername(),
                 user.getEmail(),
                 user.getFullName(),
-//                storageService.getPresignedUrl(user.getAvatar_url())
-                user.getAvatar_url()
+                storageService.getPresignedUrl(user.getAvatar_url())
+//                user.getAvatar_url()
         );
     }
 
